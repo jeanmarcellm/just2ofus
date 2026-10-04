@@ -1,8 +1,8 @@
 "use client";
 
 import { format, isPast, parseISO } from "date-fns";
-import { Check, Lightbulb, MapPin, Pencil, Plus, Trash2, Wine, X } from "lucide-react";
-import { useState } from "react";
+import { Check, Dices, Lightbulb, MapPin, Pencil, Plus, Trash2, Wine, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
 import {
   Button,
@@ -19,22 +19,41 @@ import {
 import { formatDateTime, toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
-import type { DatePlan } from "@/lib/types";
+import type { DateIdea, DateIdeaBudget, DateIdeaSetting, DatePlan } from "@/lib/types";
 
-const IDEAS = [
-  { title: "Piquenique no parque", location: "Parque mais próximo" },
-  { title: "Noite de fondue em casa", location: "Em casa" },
-  { title: "Cinema + pipoca doce", location: "Cinema" },
-  { title: "Aula de dança juntos", location: "" },
-  { title: "Ver o pôr do sol", location: "Mirante" },
-  { title: "Cozinhar uma receita nova", location: "Em casa" },
-  { title: "Noite de jogos de tabuleiro", location: "Em casa" },
-  { title: "Jantar num restaurante novo", location: "" },
-  { title: "Trilha leve de manhã", location: "" },
-  { title: "Tour de cafeterias", location: "Centro" },
-  { title: "Karaokê", location: "" },
-  { title: "Maratona de filmes com tema", location: "Em casa" },
+type Idea = Pick<DateIdea, "title" | "location" | "setting" | "budget"> & { id?: string };
+
+const IDEAS: Idea[] = [
+  { title: "Piquenique no parque", location: "Parque mais próximo", setting: "out", budget: "low" },
+  { title: "Noite de fondue em casa", location: "Em casa", setting: "home", budget: "medium" },
+  { title: "Cinema + pipoca doce", location: "Cinema", setting: "out", budget: "medium" },
+  { title: "Aula de dança juntos", location: null, setting: "out", budget: "medium" },
+  { title: "Ver o pôr do sol", location: "Mirante", setting: "out", budget: "low" },
+  { title: "Cozinhar uma receita nova", location: "Em casa", setting: "home", budget: "low" },
+  { title: "Noite de jogos de tabuleiro", location: "Em casa", setting: "home", budget: "low" },
+  { title: "Jantar num restaurante novo", location: null, setting: "out", budget: "high" },
+  { title: "Trilha leve de manhã", location: null, setting: "out", budget: "low" },
+  { title: "Tour de cafeterias", location: "Centro", setting: "out", budget: "medium" },
+  { title: "Karaokê", location: null, setting: "out", budget: "medium" },
+  { title: "Maratona de filmes com tema", location: "Em casa", setting: "home", budget: "low" },
+  { title: "Spa caseiro com máscaras e massagem", location: "Em casa", setting: "home", budget: "low" },
+  { title: "Noite de vinhos e queijos", location: "Em casa", setting: "home", budget: "high" },
+  { title: "Fim de semana numa pousada", location: null, setting: "out", budget: "high" },
+  { title: "Show ou teatro", location: null, setting: "out", budget: "high" },
 ];
+
+const SETTINGS: { value: "all" | DateIdeaSetting; label: string }[] = [
+  { value: "all", label: "Tanto faz" },
+  { value: "home", label: "🏠 Em casa" },
+  { value: "out", label: "🌆 Fora" },
+];
+const BUDGETS: { value: "all" | DateIdeaBudget; label: string }[] = [
+  { value: "all", label: "Qualquer" },
+  { value: "low", label: "$" },
+  { value: "medium", label: "$$" },
+  { value: "high", label: "$$$" },
+];
+const BUDGET_LABEL: Record<DateIdeaBudget, string> = { low: "$", medium: "$$", high: "$$$" };
 
 type Draft = { id?: string; title: string; when: string; location: string; notes: string };
 
@@ -47,7 +66,7 @@ const toInputValue = (iso: string) => format(parseISO(iso), "yyyy-MM-dd'T'HH:mm"
 
 export default function DatesPage() {
   const { profile, partner } = useCouple();
-  const [tab, setTab] = useState<"upcoming" | "history">("upcoming");
+  const [tab, setTab] = useState<"upcoming" | "history" | "ideas">("upcoming");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -107,10 +126,15 @@ export default function DatesPage() {
         options={[
           { value: "upcoming", label: `Próximos (${upcoming.length})` },
           { value: "history", label: "Histórico" },
+          { value: "ideas", label: "Ideias" },
         ]}
       />
 
-      {plans === null ? (
+      {tab === "ideas" ? (
+        <IdeasTab
+          onSchedule={(idea) => setDraft({ title: idea.title, when: "", location: idea.location ?? "", notes: "" })}
+        />
+      ) : plans === null ? (
         <Spinner />
       ) : list.length === 0 ? (
         <EmptyState
@@ -205,7 +229,7 @@ function DateSheet({ draft, onClose, onSaved }: { draft: Draft; onClose: () => v
 
   function suggest() {
     const idea = IDEAS[Math.floor(Math.random() * IDEAS.length)];
-    setForm((f) => ({ ...f, title: idea.title, location: idea.location }));
+    setForm((f) => ({ ...f, title: idea.title, location: idea.location ?? "" }));
   }
 
   async function save(e: React.FormEvent) {
@@ -251,6 +275,185 @@ function DateSheet({ draft, onClose, onSaved }: { draft: Draft; onClose: () => v
         </Field>
         <ErrorText>{error}</ErrorText>
         <Button type="submit" loading={busy}>Salvar</Button>
+      </form>
+    </Sheet>
+  );
+}
+
+async function fetchIdeas(): Promise<DateIdea[]> {
+  const { data } = await supabase().from("date_ideas").select("*").order("created_at");
+  return data ?? [];
+}
+
+function IdeasTab({ onSchedule }: { onSchedule: (idea: Idea) => void }) {
+  const [custom, load] = useLoader(fetchIdeas);
+  const [setting, setSetting] = useState<"all" | DateIdeaSetting>("all");
+  const [budget, setBudget] = useState<"all" | DateIdeaBudget>("all");
+  const [shown, setShown] = useState<Idea | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const pool = [...(custom ?? []), ...IDEAS].filter(
+    (i) => (setting === "all" || i.setting === setting) && (budget === "all" || i.budget === budget),
+  );
+
+  // flick through a few random ideas, slowing down, then land on one
+  function spin() {
+    if (!pool.length) return;
+    setSpinning(true);
+    let step = 0;
+    const tick = () => {
+      setShown(pool[Math.floor(Math.random() * pool.length)]);
+      step += 1;
+      if (step < 14) timer.current = setTimeout(tick, 50 + step * 15);
+      else setSpinning(false);
+    };
+    tick();
+  }
+
+  async function remove(idea: DateIdea) {
+    await supabase().from("date_ideas").delete().eq("id", idea.id);
+    await load();
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="rounded-3xl bg-white p-5 ring-1 ring-rose-100">
+        <p className="mb-2 text-sm font-medium text-stone-700">Onde?</p>
+        <Chips value={setting} onChange={setSetting} options={SETTINGS} />
+        <p className="mt-4 mb-2 text-sm font-medium text-stone-700">Quanto gastar?</p>
+        <Chips value={budget} onChange={setBudget} options={BUDGETS} />
+      </div>
+
+      <div className="flex flex-col items-center gap-4 rounded-[2rem] bg-gradient-to-br from-violet-500 to-rose-500 p-6 text-center text-white shadow-lg shadow-rose-500/30">
+        <p className={`min-h-14 text-xl font-bold leading-snug transition ${spinning ? "opacity-70 blur-[1px]" : ""}`}>
+          {shown ? shown.title : pool.length ? "Gire a roleta e deixem a sorte escolher!" : "Nenhuma ideia com esses filtros."}
+        </p>
+        {shown && !spinning && (
+          <p className="-mt-2 text-sm text-rose-100">
+            {shown.setting === "home" ? "Em casa" : "Fora"} · {BUDGET_LABEL[shown.budget]}
+            {shown.location && shown.location !== "Em casa" ? ` · ${shown.location}` : ""}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={spin} disabled={spinning || !pool.length}>
+            <Dices className="size-4" /> {shown ? "Girar de novo" : "Girar"}
+          </Button>
+          {shown && !spinning && (
+            <Button variant="secondary" onClick={() => onSchedule(shown)}>
+              Agendar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold text-stone-900">Ideias de vocês</h2>
+          <Button variant="ghost" className="px-3" onClick={() => setAdding(true)}>
+            <Plus className="size-4" /> Ideia
+          </Button>
+        </div>
+        {custom === null ? (
+          <Spinner className="py-6" />
+        ) : custom.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-rose-200 p-5 text-center text-sm text-stone-500">
+            Salvem as ideias que surgirem: elas entram na roleta junto com as {IDEAS.length} sugestões do app.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {custom.map((idea) => (
+              <li key={idea.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-rose-100">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium text-stone-900">{idea.title}</span>
+                  <span className="text-xs text-stone-500">
+                    {idea.setting === "home" ? "Em casa" : "Fora"} · {BUDGET_LABEL[idea.budget]}
+                    {idea.location ? ` · ${idea.location}` : ""}
+                  </span>
+                </span>
+                <button onClick={() => remove(idea)} className="rounded-full p-1 text-stone-300 hover:text-red-600" aria-label="Remover ideia">
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {adding && <IdeaSheet onClose={() => setAdding(false)} onSaved={load} />}
+    </div>
+  );
+}
+
+function Chips<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
+            value === o.value ? "bg-rose-500 text-white" : "bg-stone-50 text-stone-600 ring-1 ring-stone-200"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function IdeaSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => Promise<void> }) {
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [setting, setSetting] = useState<DateIdeaSetting>("out");
+  const [budget, setBudget] = useState<DateIdeaBudget>("low");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase()
+      .from("date_ideas")
+      .insert({ title: title.trim(), location: location.trim() || null, setting, budget });
+    setBusy(false);
+    if (error) return setError(friendlyError(error));
+    await onSaved();
+    onClose();
+  }
+
+  return (
+    <Sheet open onClose={onClose} title="Nova ideia de date">
+      <form onSubmit={save} className="flex flex-col gap-5">
+        <Field label="Ideia">
+          <Input required maxLength={120} placeholder="Ex: Andar de bicicleta na orla" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </Field>
+        <Field label="Onde? (opcional)">
+          <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+        </Field>
+        <div>
+          <p className="mb-2 text-sm font-medium text-stone-700">Em casa ou fora?</p>
+          <Chips value={setting} onChange={setSetting} options={SETTINGS.filter((o) => o.value !== "all") as { value: DateIdeaSetting; label: string }[]} />
+        </div>
+        <div>
+          <p className="mb-2 text-sm font-medium text-stone-700">Custo</p>
+          <Chips value={budget} onChange={setBudget} options={BUDGETS.filter((o) => o.value !== "all") as { value: DateIdeaBudget; label: string }[]} />
+        </div>
+        <ErrorText>{error}</ErrorText>
+        <Button type="submit" loading={busy}>Salvar ideia</Button>
       </form>
     </Sheet>
   );

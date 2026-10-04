@@ -4,31 +4,20 @@ import { Camera, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
 import { Button, EmptyState, ErrorText, Field, Input, PageHeader, Sheet, Spinner, Tabs } from "@/components/ui";
-import { formatDay, toDayString } from "@/lib/dates";
-import { compressImage } from "@/lib/images";
+import { formatDay } from "@/lib/dates";
+import { PHOTOS_BUCKET, signedUrls, uploadPhoto } from "@/lib/photos";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
 import type { Photo } from "@/lib/types";
 
-const BUCKET = "photos";
-const URL_TTL_SECONDS = 60 * 60;
-
 async function fetchAlbum(): Promise<{ photos: Photo[]; urls: Record<string, string> }> {
-  const db = supabase();
-  const { data } = await db
+  const { data } = await supabase()
     .from("photos")
     .select("*")
     .order("taken_on", { ascending: false })
     .order("created_at", { ascending: false });
   const photos: Photo[] = data ?? [];
-  if (!photos.length) return { photos, urls: {} };
-  const { data: signed } = await db.storage
-    .from(BUCKET)
-    .createSignedUrls(photos.map((p) => p.storage_path), URL_TTL_SECONDS);
-  const urls = Object.fromEntries(
-    (signed ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl]] : [])),
-  );
-  return { photos, urls };
+  return { photos, urls: await signedUrls(photos.map((p) => p.storage_path)) };
 }
 
 export default function AlbumPage() {
@@ -47,19 +36,9 @@ export default function AlbumPage() {
     if (!files?.length) return;
     setError("");
     setUploading(files.length);
-    const db = supabase();
     for (const file of Array.from(files)) {
       try {
-        const blob = await compressImage(file);
-        const ext = blob.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "jpg").toLowerCase();
-        const path = `${couple.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await db.storage.from(BUCKET).upload(path, blob, { contentType: blob.type || file.type });
-        if (upErr) throw upErr;
-        const { error: rowErr } = await db.from("photos").insert({ storage_path: path, taken_on: toDayString(new Date(file.lastModified)) });
-        if (rowErr) {
-          await db.storage.from(BUCKET).remove([path]);
-          throw rowErr;
-        }
+        await uploadPhoto(couple.id, file);
       } catch (e) {
         setError(friendlyError(e));
       }
@@ -167,7 +146,7 @@ function PhotoSheet({
     setBusy(true);
     const db = supabase();
     const { error } = await db.from("photos").delete().eq("id", photo.id);
-    if (!error) await db.storage.from(BUCKET).remove([photo.storage_path]);
+    if (!error) await db.storage.from(PHOTOS_BUCKET).remove([photo.storage_path]);
     setBusy(false);
     if (error) return setError(friendlyError(error));
     await onChanged();

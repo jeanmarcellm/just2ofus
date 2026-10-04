@@ -16,18 +16,23 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Wine } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { useCouple } from "@/components/auth-provider";
 import { Button, Card, ErrorText, Field, Input, PageHeader, Sheet, Textarea } from "@/components/ui";
 import { formatDay, toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
-import type { DatePlan, Moment } from "@/lib/types";
+import { withAnniversary } from "@/lib/special-dates";
+import type { DatePlan, Moment, Mood, SpecialDate } from "@/lib/types";
 
 const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 const EMOJIS = ["❤️", "🥂", "🍕", "✈️", "🎬", "🏖️", "🎂", "💍", "🎁", "🌙", "🎶", "🐾"];
 
 type Draft = { id?: string; emoji: string; title: string; happened_on: string; description: string };
 
+type DayItems = { moments: Moment[]; dates: DatePlan[]; special: (SpecialDate & { years: number })[]; moods: Mood[] };
+
 export default function CalendarPage() {
+  const { userId, partner, couple } = useCouple();
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => toDayString(new Date()));
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -41,7 +46,7 @@ export default function CalendarPage() {
     const from = toDayString(days[0]);
     const to = toDayString(days[days.length - 1]);
     const db = supabase();
-    const [m, d] = await Promise.all([
+    const [m, d, s, md] = await Promise.all([
       db.from("moments").select("*").gte("happened_on", from).lte("happened_on", to).order("happened_on"),
       db
         .from("date_plans")
@@ -50,20 +55,39 @@ export default function CalendarPage() {
         .gte("scheduled_at", startOfDay(days[0]).toISOString())
         .lte("scheduled_at", endOfDay(days[days.length - 1]).toISOString())
         .order("scheduled_at"),
+      db.from("special_dates").select("id, title, emoji, day, yearly"),
+      db.from("moods").select("user_id, day, emoji, note").gte("day", from).lte("day", to),
     ]);
-    return { moments: (m.data ?? []) as Moment[], dates: (d.data ?? []) as DatePlan[] };
+    return {
+      moments: (m.data ?? []) as Moment[],
+      dates: (d.data ?? []) as DatePlan[],
+      special: (s.data ?? []) as SpecialDate[],
+      moods: (md.data ?? []) as Mood[],
+    };
   }, [days]);
   const [range, load] = useLoader(fetchRange);
   const moments = useMemo(() => range?.moments ?? [], [range]);
   const dates = useMemo(() => range?.dates ?? [], [range]);
 
   const byDay = useMemo(() => {
-    const map = new Map<string, { moments: Moment[]; dates: DatePlan[] }>();
-    const get = (key: string) => map.get(key) ?? map.set(key, { moments: [], dates: [] }).get(key)!;
+    const map = new Map<string, DayItems>();
+    const get = (key: string) => map.get(key) ?? map.set(key, { moments: [], dates: [], special: [], moods: [] }).get(key)!;
     moments.forEach((m) => get(m.happened_on).moments.push(m));
     dates.forEach((d) => get(toDayString(parseISO(d.scheduled_at))).dates.push(d));
+    range?.moods.forEach((m) => get(m.day).moods.push(m));
+    // yearly dates land on the same month/day every year from the original one on
+    const special = withAnniversary(range?.special ?? [], couple.together_since);
+    days.forEach((day) => {
+      const key = toDayString(day);
+      special.forEach((sd) => {
+        const years = day.getFullYear() - Number(sd.day.slice(0, 4));
+        if (sd.yearly ? years >= 0 && sd.day.slice(5) === key.slice(5) : sd.day === key) {
+          get(key).special.push({ ...sd, years });
+        }
+      });
+    });
     return map;
-  }, [moments, dates]);
+  }, [moments, dates, range, days, couple.together_since]);
 
   const today = toDayString(new Date());
   const selectedItems = byDay.get(selected);
@@ -121,6 +145,7 @@ export default function CalendarPage() {
                 <span className="mt-0.5 flex h-1.5 gap-0.5">
                   {!!items?.moments.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-white" : "bg-rose-400"}`} />}
                   {!!items?.dates.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-violet-200" : "bg-violet-400"}`} />}
+                  {!!items?.special.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-amber-200" : "bg-amber-400"}`} />}
                 </span>
               </button>
             );
@@ -130,12 +155,23 @@ export default function CalendarPage() {
 
       <section className="mt-6">
         <h2 className="mb-3 font-semibold capitalize text-stone-900">{formatDay(selected, "EEEE, d 'de' MMMM")}</h2>
-        {!selectedItems?.moments.length && !selectedItems?.dates.length ? (
+        {!selectedItems?.moments.length && !selectedItems?.dates.length && !selectedItems?.special.length && !selectedItems?.moods.length ? (
           <p className="rounded-2xl border border-dashed border-rose-200 p-5 text-center text-sm text-stone-500">
             Nada registrado neste dia.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
+            {selectedItems?.special.map((sd) => (
+              <li key={sd.id} className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+                <span className="text-2xl">{sd.emoji}</span>
+                <span>
+                  <span className="block font-semibold text-amber-900">{sd.title}</span>
+                  {sd.yearly && sd.years > 0 && (
+                    <span className="text-sm text-amber-700">{sd.years} {sd.years === 1 ? "ano" : "anos"}</span>
+                  )}
+                </span>
+              </li>
+            ))}
             {selectedItems?.moments.map((m) => (
               <li key={m.id}>
                 <button
@@ -163,6 +199,20 @@ export default function CalendarPage() {
                 </span>
               </li>
             ))}
+            {!!selectedItems?.moods.length && (
+              <li className="flex flex-col gap-2 rounded-2xl bg-white p-4 ring-1 ring-rose-100">
+                <span className="text-xs font-semibold uppercase tracking-wide text-stone-400">Humor do dia</span>
+                {selectedItems.moods.map((mood) => (
+                  <span key={mood.user_id} className="flex items-center gap-2 text-sm text-stone-600">
+                    <span className="text-xl">{mood.emoji}</span>
+                    <span className="font-semibold text-stone-900">
+                      {mood.user_id === userId ? "Você" : partner?.display_name ?? "Seu par"}
+                    </span>
+                    {mood.note && <span className="min-w-0">· {mood.note}</span>}
+                  </span>
+                ))}
+              </li>
+            )}
           </ul>
         )}
       </section>

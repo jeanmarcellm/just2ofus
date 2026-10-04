@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, X } from "lucide-react";
+import { ChevronLeft, Loader2, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -204,5 +205,83 @@ export function Tabs<T extends string>({
         </button>
       ))}
     </div>
+  );
+}
+
+// Header for pages reached from "Mais": same look as PageHeader plus a back link.
+export function SubPageHeader({
+  title,
+  subtitle,
+  action,
+  back = "/mais",
+}: {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  back?: string;
+}) {
+  return (
+    <header className="flex items-end justify-between gap-4 pb-5">
+      <div className="flex items-start gap-1">
+        <Link href={back} className="-ml-2 rounded-full p-2 hover:bg-rose-50" aria-label="Voltar">
+          <ChevronLeft className="size-5 text-stone-600" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900">{title}</h1>
+          {subtitle && <p className="mt-0.5 text-sm text-stone-500">{subtitle}</p>}
+        </div>
+      </div>
+      {action}
+    </header>
+  );
+}
+
+export function EmojiPicker({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (emoji: string) => void;
+  options: string[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((emoji) => (
+        <button
+          key={emoji}
+          type="button"
+          onClick={() => onChange(emoji)}
+          aria-pressed={value === emoji}
+          className={`flex size-11 items-center justify-center rounded-2xl text-xl transition ${
+            value === emoji ? "bg-rose-100 ring-2 ring-rose-400" : "bg-stone-50"
+          }`}
+        >
+          {emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex items-center gap-3 text-sm font-medium text-stone-700">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="size-5 rounded accent-rose-500"
+      />
+      {label}
+    </label>
   );
 }

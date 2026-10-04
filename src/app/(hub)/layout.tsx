@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, CalendarDays, Heart, Puzzle, Wine } from "lucide-react";
+import { Camera, CalendarDays, Heart, LayoutGrid, Puzzle, Wine } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -13,7 +13,16 @@ const NAV = [
   { href: "/dates/", label: "Dates", icon: Wine },
   { href: "/quiz/", label: "Quiz", icon: Puzzle },
   { href: "/album/", label: "Álbum", icon: Camera },
+  { href: "/mais/", label: "Mais", icon: LayoutGrid },
 ];
+
+// Pages opened from "Mais" keep that tab highlighted.
+const MORE_PAGES = ["/recados", "/pergunta", "/listas", "/metas", "/datas", "/historia", "/capsula", "/perfil"];
+
+function isActive(pathname: string, href: string) {
+  if (pathname === href || pathname === href.slice(0, -1)) return true;
+  return href === "/mais/" && MORE_PAGES.some((p) => pathname.startsWith(p));
+}
 
 export default function HubLayout({ children }: { children: React.ReactNode }) {
   const { loading, session, couple } = useAuth();
@@ -39,12 +48,12 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-rose-100 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg">
         <ul className="mx-auto flex max-w-lg">
           {NAV.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname === href.slice(0, -1);
+            const active = isActive(pathname, href);
             return (
               <li key={href} className="flex-1">
                 <Link
                   href={href}
-                  className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition ${
+                  className={`flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition sm:text-[11px] ${
                     active ? "text-rose-500" : "text-stone-400"
                   }`}
                 >

@@ -4,6 +4,13 @@ import { CalendarHeart, Camera, ChevronRight, MapPin, Send, Wine } from "lucide-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
+import {
+  DailyQuestionCard,
+  LatestNoteCard,
+  MoodCard,
+  OnThisDayCard,
+  UpcomingDatesCard,
+} from "@/components/home-cards";
 import { Avatar, Card } from "@/components/ui";
 import { formatDateTime, formatDay, nextAnniversary, togetherDuration } from "@/lib/dates";
 import { supabase } from "@/lib/supabase";
@@ -111,6 +118,10 @@ export default function Home() {
         </div>
       </section>
 
+      <LatestNoteCard />
+      <MoodCard />
+      <DailyQuestionCard />
+
       <div className="grid grid-cols-3 gap-3">
         {[
           { href: "/calendario", icon: CalendarHeart, value: stats.moments, label: "momentos" },
@@ -124,6 +135,8 @@ export default function Home() {
           </Link>
         ))}
       </div>
+
+      <UpcomingDatesCard />
 
       <Card>
         <div className="mb-3 flex items-center justify-between">
@@ -144,6 +157,8 @@ export default function Home() {
           <p className="text-sm text-stone-500">Nenhum date marcado. Que tal planejar um?</p>
         )}
       </Card>
+
+      <OnThisDayCard />
 
       <Card>
         <div className="mb-3 flex items-center justify-between">

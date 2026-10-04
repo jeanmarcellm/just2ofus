@@ -63,3 +63,97 @@ export type QuizRound = {
   total: number;
   played_at: string;
 };
+
+export type Note = {
+  id: string;
+  author_id: string;
+  body: string;
+  emoji: string;
+  visible_from: string;
+  created_at: string;
+};
+
+export type Mood = {
+  user_id: string;
+  day: string;
+  emoji: string;
+  note: string | null;
+};
+
+export type DailyQuestion = {
+  id: number;
+  prompt: string;
+};
+
+export type DailyAnswer = {
+  user_id: string;
+  day: string;
+  question_id: number;
+  answer: string;
+};
+
+export type List = {
+  id: string;
+  title: string;
+  emoji: string;
+  created_at: string;
+};
+
+export type ListItem = {
+  id: string;
+  list_id: string;
+  created_by: string;
+  text: string;
+  done: boolean;
+  done_at: string | null;
+  done_by: string | null;
+  moment_id: string | null;
+};
+
+export type Goal = {
+  id: string;
+  created_by: string;
+  title: string;
+  emoji: string;
+  target_on: string | null;
+  done_on: string | null;
+  moment_id: string | null;
+  photo_id: string | null;
+};
+
+export type SpecialDate = {
+  id: string;
+  title: string;
+  emoji: string;
+  day: string;
+  yearly: boolean;
+};
+
+export type DateIdeaSetting = "home" | "out";
+export type DateIdeaBudget = "low" | "medium" | "high";
+
+export type DateIdea = {
+  id: string;
+  title: string;
+  location: string | null;
+  setting: DateIdeaSetting;
+  budget: DateIdeaBudget;
+};
+
+export type Capsule = {
+  id: string;
+  created_by: string;
+  title: string;
+  opens_at: string;
+  has_photo: boolean;
+  created_at: string;
+};
+
+export type OnThisDayItem = {
+  kind: "moment" | "photo";
+  id: string;
+  title: string | null;
+  emoji: string | null;
+  day: string;
+  storage_path: string | null;
+};
