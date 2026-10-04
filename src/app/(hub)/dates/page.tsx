@@ -1,6 +1,7 @@
 "use client";
 
 import { format, isPast, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Check, Dices, Lightbulb, MapPin, Pencil, Plus, Trash2, Wine, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
@@ -14,9 +15,10 @@ import {
   Sheet,
   Spinner,
   Tabs,
+  Tape,
   Textarea,
 } from "@/components/ui";
-import { formatDateTime, toDayString } from "@/lib/dates";
+import { toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
 import type { DateIdea, DateIdeaBudget, DateIdeaSetting, DatePlan } from "@/lib/types";
@@ -113,7 +115,7 @@ export default function DatesPage() {
     <div>
       <PageHeader
         title="Dates"
-        subtitle="Planejem os próximos encontros"
+        subtitle="planejem os próximos encontros"
         action={
           <Button className="px-4" onClick={() => setDraft({ title: "", when: "", location: "", notes: "" })}>
             <Plus className="size-4" /> Date
@@ -143,74 +145,85 @@ export default function DatesPage() {
           text={tab === "upcoming" ? "Marquem algo especial — sem ideias? Temos sugestões." : "Dates realizados ou cancelados aparecem aqui."}
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {list.map((plan) => {
+        <ul className="flex flex-col gap-5">
+          {list.map((plan, i) => {
             const overdue = plan.status === "planned" && isPast(parseISO(plan.scheduled_at));
+            const when = parseISO(plan.scheduled_at);
             return (
-              <li key={plan.id} className="rounded-3xl bg-white p-5 ring-1 ring-rose-100">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-stone-900">{plan.title}</p>
-                    <p className="text-sm capitalize text-stone-500">{formatDateTime(plan.scheduled_at)}</p>
+              <li
+                key={plan.id}
+                className={`drop-shadow-[0_10px_14px_rgba(80,50,40,.2)] ${plan.status === "cancelled" ? "opacity-60" : ""}`}
+                style={{ rotate: `${i % 2 ? 0.4 : -0.4}deg` }}
+              >
+                <div className="j2-ticket flex rounded-xl bg-sheet">
+                  <div className="min-w-0 flex-1 p-[18px] pb-4">
+                    <p className="text-[11px] font-bold tracking-[.18em] text-terracota uppercase">
+                      {plan.status === "done" ? "Realizado ♡" : plan.status === "cancelled" ? "Cancelado" : "Admite dois"}
+                    </p>
+                    <p className={`mt-1.5 font-serif text-[26px] leading-[1.05] text-ink ${plan.status === "cancelled" ? "line-through decoration-1" : ""}`}>
+                      {plan.title}
+                    </p>
                     {plan.location && (
-                      <p className="mt-1 flex items-center gap-1 text-sm text-stone-500">
-                        <MapPin className="size-4 shrink-0" /> {plan.location}
+                      <p className="mt-2 flex items-center gap-1.5 text-[13px] text-muted">
+                        <MapPin className="size-3.5 shrink-0" /> {plan.location}
                       </p>
                     )}
-                    {plan.notes && <p className="mt-2 text-sm text-stone-600">{plan.notes}</p>}
-                    <p className="mt-2 text-xs text-stone-400">Planejado por {authorName(plan.created_by)}</p>
-                  </div>
-                  {plan.status !== "planned" && (
-                    <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-                        plan.status === "done" ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-500"
-                      }`}
-                    >
-                      {plan.status === "done" ? "Realizado" : "Cancelado"}
-                    </span>
-                  )}
-                </div>
+                    {plan.notes && <p className="mt-2 font-hand text-xl leading-tight text-ink-soft">{plan.notes}</p>}
+                    <p className="mt-2 font-hand text-lg text-faint">planejado por {authorName(plan.created_by)}</p>
 
-                {plan.status === "planned" ? (
-                  <>
-                    {overdue && (
-                      <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                        Esse dia já passou. Como foi? Marque como realizado para virar um momento no calendário.
-                      </p>
-                    )}
-                    <div className="mt-4 flex gap-2">
-                      <Button className="flex-1" onClick={() => markDone(plan)} loading={busyId === plan.id}>
-                        <Check className="size-4" /> Realizado
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        aria-label="Editar"
-                        onClick={() =>
-                          setDraft({
-                            id: plan.id,
-                            title: plan.title,
-                            when: toInputValue(plan.scheduled_at),
-                            location: plan.location ?? "",
-                            notes: plan.notes ?? "",
-                          })
-                        }
+                    {plan.status === "planned" ? (
+                      <>
+                        {overdue && (
+                          <p className="mt-3 rotate-[-0.6deg] rounded-[4px] bg-[#faf3e0] px-3 py-2 font-hand text-lg leading-tight text-[#7a5a22]">
+                            Esse dia já passou. Como foi? Marque como realizado para virar um momento no calendário.
+                          </p>
+                        )}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <Button className="flex-1 px-4" onClick={() => markDone(plan)} loading={busyId === plan.id}>
+                            <Check className="size-4" /> Realizado
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            className="px-3.5"
+                            aria-label="Editar"
+                            onClick={() =>
+                              setDraft({
+                                id: plan.id,
+                                title: plan.title,
+                                when: toInputValue(plan.scheduled_at),
+                                location: plan.location ?? "",
+                                notes: plan.notes ?? "",
+                              })
+                            }
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button variant="danger" className="px-3.5" aria-label="Cancelar date" onClick={() => setCancelled(plan)} disabled={busyId === plan.id}>
+                            <X className="size-4" />
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => remove(plan)}
+                        disabled={busyId === plan.id}
+                        className="mt-3 flex items-center gap-1 text-xs font-semibold text-faint hover:text-danger"
                       >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button variant="danger" aria-label="Cancelar date" onClick={() => setCancelled(plan)} disabled={busyId === plan.id}>
-                        <X className="size-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => remove(plan)}
-                    disabled={busyId === plan.id}
-                    className="mt-3 flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-red-600"
-                  >
-                    <Trash2 className="size-3.5" /> Remover do histórico
-                  </button>
-                )}
+                        <Trash2 className="size-3.5" /> Remover do histórico
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex w-24 shrink-0 flex-col items-center justify-center border-l-2 border-dashed border-[#e6d6c8] bg-[#f6e3e0] py-3">
+                    <span className="text-[11px] font-bold tracking-[.18em] text-terracota uppercase">
+                      {format(when, "EEE", { locale: ptBR }).replace(".", "")}
+                    </span>
+                    <span className="font-serif text-[40px] leading-none text-ink">{format(when, "d")}</span>
+                    <span className="font-hand text-lg leading-tight text-ink-soft">{format(when, "MMM", { locale: ptBR }).replace(".", "")}</span>
+                    <span className="font-hand text-xl leading-tight text-ink-soft">
+                      às {format(when, "H")}h{format(when, "mm") === "00" ? "" : format(when, "mm")}
+                    </span>
+                  </div>
+                </div>
               </li>
             );
           })}
@@ -256,7 +269,7 @@ function DateSheet({ draft, onClose, onSaved }: { draft: Draft; onClose: () => v
           <button
             type="button"
             onClick={suggest}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-amber-50 py-3 text-sm font-semibold text-amber-800 ring-1 ring-amber-100"
+            className="flex rotate-[-0.6deg] items-center justify-center gap-2 rounded-[4px] bg-[#faf3e0] py-3 font-hand text-xl text-[#7a5a22] shadow-paper"
           >
             <Lightbulb className="size-4" /> Sem ideias? Sortear uma sugestão
           </button>
@@ -321,26 +334,28 @@ function IdeasTab({ onSchedule }: { onSchedule: (idea: Idea) => void }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="rounded-3xl bg-white p-5 ring-1 ring-rose-100">
-        <p className="mb-2 text-sm font-medium text-stone-700">Onde?</p>
+      <div className="rounded-[6px] bg-sheet p-5 shadow-paper">
+        <p className="mb-2 font-hand text-[21px] leading-tight text-muted">onde?</p>
         <Chips value={setting} onChange={setSetting} options={SETTINGS} />
-        <p className="mt-4 mb-2 text-sm font-medium text-stone-700">Quanto gastar?</p>
+        <p className="mt-4 mb-2 font-hand text-[21px] leading-tight text-muted">quanto gastar?</p>
         <Chips value={budget} onChange={setBudget} options={BUDGETS} />
       </div>
 
-      <div className="flex flex-col items-center gap-4 rounded-[2rem] bg-gradient-to-br from-violet-500 to-rose-500 p-6 text-center text-white shadow-lg shadow-rose-500/30">
-        <p className={`min-h-14 text-xl font-bold leading-snug transition ${spinning ? "opacity-70 blur-[1px]" : ""}`}>
+      <div className="relative flex rotate-[0.5deg] flex-col items-center gap-4 rounded-[6px] bg-kraft px-5 pt-7 pb-6 text-center shadow-paper">
+        <Tape color="mustard" textured className="-top-[11px] left-1/2 -ml-[45px] h-6 w-[90px]" rotate={-3} />
+        <p className="text-xs font-semibold tracking-[.14em] text-terracota uppercase">Roleta de dates</p>
+        <p className={`min-h-[4.5rem] font-serif text-[28px] leading-[1.1] text-balance text-ink italic transition ${spinning ? "opacity-60 blur-[1px]" : ""}`}>
           {shown ? shown.title : pool.length ? "Gire a roleta e deixem a sorte escolher!" : "Nenhuma ideia com esses filtros."}
         </p>
         {shown && !spinning && (
-          <p className="-mt-2 text-sm text-rose-100">
+          <p className="-mt-2 font-hand text-xl text-ink-soft">
             {shown.setting === "home" ? "Em casa" : "Fora"} · {BUDGET_LABEL[shown.budget]}
             {shown.location && shown.location !== "Em casa" ? ` · ${shown.location}` : ""}
           </p>
         )}
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={spin} disabled={spinning || !pool.length}>
-            <Dices className="size-4" /> {shown ? "Girar de novo" : "Girar"}
+          <Button onClick={spin} disabled={spinning || !pool.length}>
+            <Dices className={`size-4 ${spinning ? "animate-spin-soft" : ""}`} /> {shown ? "Girar de novo" : "Girar"}
           </Button>
           {shown && !spinning && (
             <Button variant="secondary" onClick={() => onSchedule(shown)}>
@@ -352,7 +367,9 @@ function IdeasTab({ onSchedule }: { onSchedule: (idea: Idea) => void }) {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-stone-900">Ideias de vocês</h2>
+          <h2 className="font-serif text-[26px] leading-tight text-ink">
+            Ideias de <em>vocês</em>
+          </h2>
           <Button variant="ghost" className="px-3" onClick={() => setAdding(true)}>
             <Plus className="size-4" /> Ideia
           </Button>
@@ -360,21 +377,21 @@ function IdeasTab({ onSchedule }: { onSchedule: (idea: Idea) => void }) {
         {custom === null ? (
           <Spinner className="py-6" />
         ) : custom.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-rose-200 p-5 text-center text-sm text-stone-500">
+          <p className="rounded-[6px] border-[1.5px] border-dashed border-line p-5 text-center font-hand text-xl leading-tight text-muted">
             Salvem as ideias que surgirem: elas entram na roleta junto com as {IDEAS.length} sugestões do app.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
             {custom.map((idea) => (
-              <li key={idea.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-rose-100">
+              <li key={idea.id} className="flex items-center gap-3 rounded-[6px] bg-sheet px-4 py-3 shadow-paper">
                 <span className="min-w-0 flex-1">
-                  <span className="block font-medium text-stone-900">{idea.title}</span>
-                  <span className="text-xs text-stone-500">
+                  <span className="block font-serif text-xl leading-tight text-ink">{idea.title}</span>
+                  <span className="font-hand text-lg text-muted">
                     {idea.setting === "home" ? "Em casa" : "Fora"} · {BUDGET_LABEL[idea.budget]}
                     {idea.location ? ` · ${idea.location}` : ""}
                   </span>
                 </span>
-                <button onClick={() => remove(idea)} className="rounded-full p-1 text-stone-300 hover:text-red-600" aria-label="Remover ideia">
+                <button onClick={() => remove(idea)} className="rounded-full p-1 text-faint hover:text-danger" aria-label="Remover ideia">
                   <Trash2 className="size-4" />
                 </button>
               </li>
@@ -404,8 +421,11 @@ function Chips<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-            value === o.value ? "bg-rose-500 text-white" : "bg-stone-50 text-stone-600 ring-1 ring-stone-200"
+          aria-pressed={value === o.value}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-[background-color,color,transform] duration-300 ease-bouncy ${
+            value === o.value
+              ? "-rotate-2 bg-batom text-sheet shadow-[inset_0_-2px_0_rgba(0,0,0,.18)]"
+              : "bg-sheet text-muted outline outline-[1.5px] outline-dashed outline-line"
           }`}
         >
           {o.label}
@@ -445,11 +465,11 @@ function IdeaSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => P
           <Input value={location} onChange={(e) => setLocation(e.target.value)} />
         </Field>
         <div>
-          <p className="mb-2 text-sm font-medium text-stone-700">Em casa ou fora?</p>
+          <p className="mb-2 font-hand text-[21px] leading-tight text-muted">Em casa ou fora?</p>
           <Chips value={setting} onChange={setSetting} options={SETTINGS.filter((o) => o.value !== "all") as { value: DateIdeaSetting; label: string }[]} />
         </div>
         <div>
-          <p className="mb-2 text-sm font-medium text-stone-700">Custo</p>
+          <p className="mb-2 font-hand text-[21px] leading-tight text-muted">Custo</p>
           <Chips value={budget} onChange={setBudget} options={BUDGETS.filter((o) => o.value !== "all") as { value: DateIdeaBudget; label: string }[]} />
         </div>
         <ErrorText>{error}</ErrorText>

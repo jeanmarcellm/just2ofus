@@ -1,12 +1,11 @@
 "use client";
 
 import { MailCheck } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AuthShell } from "@/components/auth-shell";
+import { AuthLink, AuthShell } from "@/components/auth-shell";
 import { afterAuthPath, useAuth } from "@/components/auth-provider";
-import { Button, ErrorText, Field, Input } from "@/components/ui";
+import { Button, ButtonLink, ErrorText, Field, Input } from "@/components/ui";
 import { friendlyError, siteUrl, supabase } from "@/lib/supabase";
 
 export default function SignUp() {
@@ -55,21 +54,28 @@ export default function SignUp() {
 
   if (awaitingConfirmation) {
     return (
-      <AuthShell title="Confirme seu email" subtitle={`Enviamos um link para ${email}.`}>
-        <div className="flex items-start gap-3 rounded-2xl bg-white p-4 text-sm text-stone-600 ring-1 ring-rose-100">
-          <MailCheck className="size-5 shrink-0 text-rose-500" />
+      <AuthShell title="Confirme seu" emphasis="email" subtitle={`Enviamos um link para ${email}.`}>
+        <div className="flex items-start gap-3 font-hand text-[22px] leading-tight text-ink-soft">
+          <MailCheck className="mt-1 size-5 shrink-0 text-batom" />
           Abra o link no email para ativar sua conta. Depois é só entrar.
         </div>
-        <Link href="/entrar" className="text-center text-sm font-semibold text-rose-600">
-          Ir para o login
-        </Link>
+        <ButtonLink href="/entrar" size="lg">Ir para o login</ButtonLink>
       </AuthShell>
     );
   }
 
   return (
-    <AuthShell title="Criar conta" subtitle="Depois você convida seu amor para entrar junto.">
-      <form onSubmit={onSubmit} className="flex flex-col gap-5">
+    <AuthShell
+      title="Criar"
+      emphasis="conta"
+      subtitle="Depois você convida seu amor para entrar junto."
+      footer={
+        <>
+          Já tem conta? <AuthLink href="/entrar">Entrar</AuthLink>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="flex flex-col gap-[22px]">
         <Field label="Seu nome">
           <Input autoComplete="given-name" required value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
@@ -80,12 +86,8 @@ export default function SignUp() {
           <Input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" loading={submitting}>Criar conta</Button>
+        <Button type="submit" size="lg" className="mt-1.5" loading={submitting}>Criar conta</Button>
       </form>
-      <p className="text-center text-sm text-stone-500">
-        Já tem conta?{" "}
-        <Link href="/entrar" className="font-semibold text-rose-600">Entrar</Link>
-      </p>
     </AuthShell>
   );
 }

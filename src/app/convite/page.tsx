@@ -1,12 +1,11 @@
 "use client";
 
 import { HeartHandshake } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { setPendingInvite, useAuth } from "@/components/auth-provider";
-import { Button, ErrorText, FullScreenSpinner } from "@/components/ui";
+import { Button, ButtonLink, ErrorText, FullScreenSpinner } from "@/components/ui";
 import { formatDay } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 
@@ -61,12 +60,11 @@ function InviteContent() {
   if (session && couple) {
     return (
       <AuthShell
-        title="Vocês já estão conectados"
+        title="Vocês já estão"
+        emphasis="conectados"
         subtitle={partner ? `Você já faz parte de um casal com ${partner.display_name}.` : "Você já faz parte de um casal."}
       >
-        <Link href="/inicio" className="flex min-h-12 items-center justify-center rounded-full bg-rose-500 font-semibold text-white">
-          Ir para o app
-        </Link>
+        <ButtonLink href="/inicio" size="lg">Ir para o app</ButtonLink>
       </AuthShell>
     );
   }
@@ -78,34 +76,31 @@ function InviteContent() {
         ? "Este convite já foi aceito."
         : "Este casal já está completo.";
     return (
-      <AuthShell title="Convite indisponível" subtitle={reason}>
-        <Link href="/" className="text-center text-sm font-semibold text-rose-600">Voltar ao início</Link>
+      <AuthShell title="Convite" emphasis="indisponível" subtitle={reason}>
+        <ButtonLink href="/" variant="secondary" size="lg">Voltar ao início</ButtonLink>
       </AuthShell>
     );
   }
 
   return (
     <AuthShell
-      title={`${invite.inviter_name} convidou você 💌`}
+      title={`${invite.inviter_name} convidou`}
+      emphasis="você 💌"
       subtitle={`Para entrarem juntos no Just2Ofus — juntos desde ${formatDay(invite.together_since)}.`}
     >
-      <div className="flex items-center gap-3 rounded-2xl bg-white p-4 text-sm text-stone-600 ring-1 ring-rose-100">
-        <HeartHandshake className="size-6 shrink-0 text-rose-500" />
+      <div className="flex items-start gap-3 font-hand text-[22px] leading-tight text-ink-soft">
+        <HeartHandshake className="mt-0.5 size-6 shrink-0 text-batom" />
         {session
           ? "Aceite o convite para compartilhar momentos, dates, quiz e álbum."
           : "Crie sua conta (ou entre) para aceitar o convite."}
       </div>
       <ErrorText>{error}</ErrorText>
       {session ? (
-        <Button onClick={accept} loading={accepting}>Aceitar convite</Button>
+        <Button size="lg" onClick={accept} loading={accepting}>Aceitar convite</Button>
       ) : (
         <div className="flex flex-col gap-3">
-          <Link href="/cadastro" className="flex min-h-12 items-center justify-center rounded-full bg-rose-500 font-semibold text-white">
-            Criar minha conta
-          </Link>
-          <Link href="/entrar" className="flex min-h-12 items-center justify-center rounded-full font-semibold text-rose-600 ring-1 ring-rose-200">
-            Já tenho conta
-          </Link>
+          <ButtonLink href="/cadastro" size="lg">Criar minha conta</ButtonLink>
+          <ButtonLink href="/entrar" variant="secondary" size="lg">Já tenho conta</ButtonLink>
         </div>
       )}
     </AuthShell>

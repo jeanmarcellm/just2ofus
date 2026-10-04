@@ -1,14 +1,17 @@
 "use client";
 
-import { Camera, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
+import { Camera, ImagePlus, Star, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
-import { Button, EmptyState, ErrorText, Field, Input, PageHeader, Sheet, Spinner, Tabs } from "@/components/ui";
+import { Button, EmptyState, ErrorText, Field, Input, PageHeader, Polaroid, Sheet, Spinner, Tabs } from "@/components/ui";
 import { formatDay } from "@/lib/dates";
 import { PHOTOS_BUCKET, signedUrls, uploadPhoto } from "@/lib/photos";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
 import type { Photo } from "@/lib/types";
+
+// Polaroids pinned at slightly different angles, like a wall.
+const ALBUM_TILTS = [-3, 2, -1.5, 3, -2, 1];
 
 async function fetchAlbum(): Promise<{ photos: Photo[]; urls: Record<string, string> }> {
   const { data } = await supabase()
@@ -89,17 +92,22 @@ export default function AlbumPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-3 gap-1.5">
-          {visible.map((p) => (
-            <button key={p.id} onClick={() => setOpen(p)} className="relative aspect-square overflow-hidden rounded-xl bg-rose-100">
-              {urls[p.storage_path] ? (
-                // Signed storage URLs: next/image optimization is unavailable in static export.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={urls[p.storage_path]} alt={p.caption ?? ""} loading="lazy" className="size-full object-cover" />
-              ) : (
-                <Loader2 className="m-auto size-5 animate-spin text-rose-300" />
-              )}
-              {p.is_special && <Star className="absolute top-1.5 right-1.5 size-4 fill-amber-400 text-amber-400 drop-shadow" />}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 pt-2 sm:grid-cols-3">
+          {visible.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => setOpen(p)}
+              className="relative text-left transition-[rotate,scale] duration-[350ms] ease-spring [rotate:var(--tilt)] hover:z-10 hover:scale-[1.04] hover:[rotate:0deg]"
+              style={{ "--tilt": `${ALBUM_TILTS[i % ALBUM_TILTS.length]}deg` } as React.CSSProperties}
+            >
+              <Polaroid
+                src={urls[p.storage_path]}
+                alt={p.caption ?? ""}
+                caption={p.caption || formatDay(p.taken_on, "d MMM yyyy")}
+                tape={p.is_special ? "mustard" : undefined}
+                imgClassName="aspect-square"
+              />
+              {p.is_special && <Star className="absolute top-3 right-3 size-4 fill-mustard text-mustard drop-shadow" aria-label="Momento especial" />}
             </button>
           ))}
         </div>
@@ -158,20 +166,21 @@ function PhotoSheet({
       <div className="flex flex-col gap-5">
         {url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={photo.caption ?? ""} className="max-h-[50dvh] w-full rounded-2xl bg-stone-100 object-contain" />
+          <img src={url} alt={photo.caption ?? ""} className="max-h-[50dvh] w-full bg-kraft object-contain p-1.5 pb-6 shadow-polaroid" />
         )}
         <button
           type="button"
           onClick={() => setSpecial((s) => !s)}
-          className={`flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold ring-1 transition ${
-            special ? "bg-amber-50 text-amber-800 ring-amber-200" : "bg-white text-stone-500 ring-stone-200"
+          aria-pressed={special}
+          className={`flex items-center justify-center gap-2 rounded-[14px] py-3 font-hand text-[21px] outline outline-[1.5px] outline-dashed transition ${
+            special ? "bg-[#faf3e0] text-[#7a5a22] outline-mustard" : "bg-sheet text-muted outline-line"
           }`}
         >
-          <Star className={`size-4 ${special ? "fill-amber-400 text-amber-400" : ""}`} />
+          <Star className={`size-4 ${special ? "fill-mustard text-mustard" : ""}`} />
           {special ? "Momento especial" : "Marcar como momento especial"}
         </button>
         <Field label="Legenda">
-          <Input value={caption} placeholder="Conte o que estava acontecendo…" onChange={(e) => setCaption(e.target.value)} />
+          <Input value={caption} placeholder="conte o que estava acontecendo…" onChange={(e) => setCaption(e.target.value)} />
         </Field>
         <Field label="Data da foto">
           <Input type="date" value={takenOn} onChange={(e) => setTakenOn(e.target.value)} />

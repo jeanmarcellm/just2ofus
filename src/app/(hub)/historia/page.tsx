@@ -3,7 +3,7 @@
 import { Milestone } from "lucide-react";
 import { useMemo } from "react";
 import { useCouple } from "@/components/auth-provider";
-import { EmptyState, Spinner, SubPageHeader } from "@/components/ui";
+import { EmptyState, Polaroid, Spinner, STICKER_TILTS, SubPageHeader, WaxSeal } from "@/components/ui";
 import { formatDay } from "@/lib/dates";
 import { signedUrls } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
@@ -58,43 +58,49 @@ export default function TimelinePage() {
             />
           )}
           <div className="relative">
-            <div className="absolute top-2 bottom-2 left-[1.15rem] w-0.5 bg-rose-100" aria-hidden />
+            <div className="absolute top-2 bottom-2 left-[1.2rem] border-l-2 border-dashed border-rose-wave" aria-hidden />
             {years.map(([year, items]) => (
               <section key={year} className="relative mb-6">
-                <h2 className="relative mb-3 ml-0 inline-flex rounded-full bg-rose-500 px-3 py-1 text-sm font-bold text-white">{year}</h2>
-                <ul className="flex flex-col gap-3">
-                  {items.map((entry) => (
+                <h2 className="relative mb-4 inline-block -rotate-3 bg-[rgba(229,168,170,.62)] px-4 py-0.5 font-serif text-[26px] text-ink italic">{year}</h2>
+                <ul className="flex flex-col gap-4">
+                  {items.map((entry, i) => (
                     <li key={entry.key} className="relative flex gap-3">
-                      <span className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-lg ring-2 ring-rose-100">
+                      <span
+                        className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f7f0e6] text-lg shadow-sticker"
+                        style={{ rotate: `${STICKER_TILTS[i % STICKER_TILTS.length]}deg` }}
+                      >
                         {entry.kind === "moment" ? entry.moment.emoji : "⭐"}
                       </span>
-                      <div className="min-w-0 flex-1 overflow-hidden rounded-2xl bg-white ring-1 ring-rose-100">
-                        {entry.kind === "photo" && entry.url && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={entry.url} alt={entry.photo.caption ?? ""} loading="lazy" className="max-h-72 w-full object-cover" />
-                        )}
-                        <div className="p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">{formatDay(entry.day, "d 'de' MMMM")}</p>
-                          {entry.kind === "moment" ? (
-                            <>
-                              <p className="font-semibold text-stone-900">{entry.moment.title}</p>
-                              {entry.moment.description && <p className="mt-0.5 text-sm text-stone-500">{entry.moment.description}</p>}
-                            </>
-                          ) : (
-                            <p className="text-stone-700">{entry.photo.caption || "Momento especial"}</p>
-                          )}
+                      {entry.kind === "photo" ? (
+                        <div className="min-w-0 flex-1 pt-1" style={{ rotate: `${i % 2 ? 1.5 : -1.5}deg` }}>
+                          <Polaroid
+                            src={entry.url}
+                            alt={entry.photo.caption ?? ""}
+                            caption={entry.photo.caption || formatDay(entry.day, "d 'de' MMMM")}
+                            tape={i % 2 ? "sage" : "mustard"}
+                            imgClassName="max-h-72"
+                            className="max-w-xs"
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="min-w-0 flex-1 rounded-[6px] bg-sheet p-4 shadow-paper" style={{ rotate: `${i % 2 ? 0.5 : -0.5}deg` }}>
+                          <p className="font-hand text-lg leading-tight text-batom">{formatDay(entry.day, "d 'de' MMMM")}</p>
+                          <p className="font-serif text-[22px] leading-tight text-ink">{entry.moment.title}</p>
+                          {entry.moment.description && <p className="mt-0.5 font-hand text-xl leading-tight text-muted">{entry.moment.description}</p>}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
               </section>
             ))}
             <div className="relative flex items-center gap-3">
-              <span className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-rose-500 text-lg text-white">💞</span>
+              <WaxSeal size={42} className="z-10" />
               <div>
-                <p className="font-bold text-stone-900">O começo de tudo</p>
-                <p className="text-sm text-stone-500">{formatDay(couple.together_since)}</p>
+                <p className="font-serif text-[24px] leading-tight text-ink">
+                  O começo de <em className="text-batom">tudo</em>
+                </p>
+                <p className="font-hand text-xl leading-tight text-muted">{formatDay(couple.together_since)}</p>
               </div>
             </div>
           </div>

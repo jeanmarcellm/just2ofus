@@ -15,6 +15,7 @@ import {
   Sheet,
   Spinner,
   SubPageHeader,
+  Tape,
   Textarea,
 } from "@/components/ui";
 import { formatDay, startOfDayIso, toDayString } from "@/lib/dates";
@@ -50,7 +51,7 @@ export default function NotesPage() {
     <div>
       <SubPageHeader
         title="Recados"
-        subtitle="Bilhetinhos para o seu amor"
+        subtitle="bilhetinhos para o seu amor"
         action={
           <Button className="px-4" onClick={() => setComposing(true)}>
             <Plus className="size-4" /> Recado
@@ -67,22 +68,25 @@ export default function NotesPage() {
           text="Deixe um bom dia, um elogio ou programe uma surpresa para um dia especial."
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {notes.map((note) => {
+        <ul className="flex flex-col gap-6 pt-2">
+          {notes.map((note, i) => {
             const mine = note.author_id === profile.id;
             const scheduled = isFuture(parseISO(note.visible_from));
             return (
               <li
                 key={note.id}
-                className={`rounded-3xl p-5 ring-1 ${mine ? "ml-6 bg-white ring-rose-100" : "mr-6 bg-rose-50 ring-rose-200"}`}
+                className={`relative rounded-[4px] px-4 pt-4 pb-3 shadow-paper ${
+                  mine ? "ml-6 bg-sheet" : "mr-6 bg-envelope"
+                } ${scheduled ? "opacity-80" : ""}`}
+                style={{ rotate: `${i % 2 ? 0.6 : -0.6}deg` }}
               >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">{note.emoji}</span>
-                  <p className="min-w-0 flex-1 whitespace-pre-wrap text-stone-800">{note.body}</p>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2 text-xs text-stone-400">
+                <Tape color={mine ? "rose" : "sage"} className="-top-[10px] left-6 h-5 w-14" rotate={mine ? -6 : 5} />
+                <p className="bg-[repeating-linear-gradient(transparent_0_29px,rgba(160,103,95,.18)_29px_30px)] font-hand text-[23px] leading-[30px] whitespace-pre-wrap text-ink">
+                  {note.emoji} {note.body}
+                </p>
+                <div className="mt-2 flex items-center justify-between gap-2 font-hand text-lg text-ink-soft">
                   {scheduled ? (
-                    <span className="flex items-center gap-1 font-semibold text-violet-600">
+                    <span className="flex items-center gap-1 text-sage-ink">
                       <Clock className="size-3.5" /> Aparece para {partner?.display_name ?? "seu par"} em {formatDay(parseISO(note.visible_from), "d 'de' MMM")}
                     </span>
                   ) : (
@@ -95,7 +99,7 @@ export default function NotesPage() {
                     <button
                       onClick={() => remove(note)}
                       disabled={busyId === note.id}
-                      className="rounded-full p-1 hover:text-red-600"
+                      className="rounded-full p-1 text-faint hover:text-danger"
                       aria-label="Apagar recado"
                     >
                       <Trash2 className="size-4" />

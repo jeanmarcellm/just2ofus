@@ -41,7 +41,7 @@ export function InviteCard({ inviterName }: { inviterName: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="break-all rounded-xl bg-rose-50 px-4 py-3 font-mono text-xs text-stone-600">
+      <div className="break-all rounded-[4px] border-[1.5px] border-dashed border-line bg-kraft px-4 py-3 font-mono text-xs text-ink-soft">
         {link || "Gerando link…"}
       </div>
       <div className="flex gap-2">

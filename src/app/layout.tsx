@@ -1,10 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Caveat, Geist_Mono, Hanken_Grotesk, Instrument_Serif } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
+  subsets: ["latin"],
+});
+
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
+  weight: "400",
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  weight: ["500", "700"],
   subsets: ["latin"],
 });
 
@@ -22,14 +35,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#fff7f8",
+  themeColor: "#f6f0e7",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${hanken.variable} ${instrument.variable} ${caveat.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
         <AuthProvider>{children}</AuthProvider>

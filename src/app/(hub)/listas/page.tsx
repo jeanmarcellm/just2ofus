@@ -1,10 +1,11 @@
 "use client";
 
 import { parseISO } from "date-fns";
-import { CalendarHeart, Check, ChevronLeft, ListChecks, Plus, Trash2 } from "lucide-react";
+import { CalendarHeart, Heart, ListChecks, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
 import {
+  BackButton,
   Button,
   EmojiPicker,
   EmptyState,
@@ -14,6 +15,7 @@ import {
   Sheet,
   Spinner,
   SubPageHeader,
+  Tape,
 } from "@/components/ui";
 import { toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
@@ -55,7 +57,7 @@ export default function ListsPage() {
     <div>
       <SubPageHeader
         title="Listas"
-        subtitle="Tudo o que vocês querem fazer, ver e comprar"
+        subtitle="tudo o que vocês querem fazer, ver e comprar"
         action={
           <Button className="px-4" onClick={() => setCreating(true)}>
             <Plus className="size-4" /> Lista
@@ -79,18 +81,23 @@ export default function ListsPage() {
           }
         />
       ) : (
-        <ul className="grid grid-cols-2 gap-3">
-          {lists.map((list) => (
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-6 pt-2">
+          {lists.map((list, i) => (
             <li key={list.id}>
-              <button onClick={() => setOpenId(list.id)} className="flex w-full flex-col items-start rounded-3xl bg-white p-4 text-left ring-1 ring-rose-100">
+              <button
+                onClick={() => setOpenId(list.id)}
+                className="relative flex w-full flex-col items-start rounded-[6px] bg-sheet p-4 pt-5 text-left shadow-paper transition-[rotate] duration-300 [rotate:var(--tilt)] hover:[rotate:0deg]"
+                style={{ "--tilt": `${i % 2 ? 1 : -1}deg` } as React.CSSProperties}
+              >
+                <Tape color={(["rose", "sage", "mustard"] as const)[i % 3]} className="-top-[10px] left-1/2 -ml-7 h-5 w-14" rotate={i % 2 ? 5 : -5} />
                 <span className="text-3xl">{list.emoji}</span>
-                <span className="mt-2 font-semibold text-stone-900">{list.title}</span>
-                <span className="text-xs text-stone-500">
+                <span className="mt-2 font-serif text-[22px] leading-tight text-ink">{list.title}</span>
+                <span className="font-hand text-lg leading-tight text-muted">
                   {list.total === 0 ? "Vazia" : `${list.done} de ${list.total} feitos`}
                 </span>
                 {list.total > 0 && (
-                  <span className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-rose-100">
-                    <span className="block h-full rounded-full bg-rose-400" style={{ width: `${(list.done / list.total) * 100}%` }} />
+                  <span className="mt-2 h-1 w-full overflow-hidden rounded-sm bg-[#f1e6db]">
+                    <span className="block h-full rounded-sm bg-rose-wave" style={{ width: `${(list.done / list.total) * 100}%` }} />
                   </span>
                 )}
               </button>
@@ -149,7 +156,7 @@ function NewListSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 setEmoji(t.emoji);
                 setTitle(t.title);
               }}
-              className="rounded-full bg-stone-50 px-3 py-1.5 text-sm text-stone-600 ring-1 ring-stone-200"
+              className="rounded-full bg-sheet px-3 py-1.5 text-sm text-muted outline outline-[1.5px] outline-dashed outline-line"
             >
               {t.emoji} {t.title}
             </button>
@@ -234,12 +241,12 @@ function ListDetail({ list, onBack, onDeleted }: { list: List; onBack: () => voi
 
   return (
     <div>
-      <header className="flex items-center gap-2 pb-5">
-        <button onClick={onBack} className="-ml-2 rounded-full p-2 hover:bg-rose-50" aria-label="Voltar">
-          <ChevronLeft className="size-5 text-stone-600" />
-        </button>
-        <span className="text-2xl">{list.emoji}</span>
-        <h1 className="min-w-0 flex-1 truncate text-2xl font-bold tracking-tight text-stone-900">{list.title}</h1>
+      <header className="flex flex-col gap-3 pb-6">
+        <BackButton onClick={onBack} />
+        <h1 className="flex items-center gap-2 font-serif text-4xl leading-none text-ink">
+          <span className="text-3xl">{list.emoji}</span>
+          <span className="min-w-0 truncate">{list.title}</span>
+        </h1>
       </header>
 
       <form onSubmit={add} className="mb-5 flex gap-2">
@@ -254,19 +261,21 @@ function ListDetail({ list, onBack, onDeleted }: { list: List; onBack: () => voi
       ) : (
         <>
           {pending.length === 0 && done.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-rose-200 p-5 text-center text-sm text-stone-500">
+            <p className="rounded-[6px] border-[1.5px] border-dashed border-line p-5 text-center font-hand text-xl text-muted">
               Lista vazia. Adicione o primeiro item acima.
             </p>
           )}
-          <ul className="flex flex-col gap-2">
+          <ul className={`rounded-[6px] bg-sheet px-4 shadow-paper ${pending.length ? "" : "hidden"}`}>
             {pending.map((item) => (
               <ItemRow key={item.id} item={item} busy={busyId === item.id} onToggle={toggle} onRemove={remove} />
             ))}
           </ul>
           {done.length > 0 && (
             <>
-              <h2 className="mt-6 mb-2 text-sm font-semibold text-stone-500">Feitos ({done.length})</h2>
-              <ul className="flex flex-col gap-2">
+              <h2 className="mt-7 mb-2 font-serif text-[22px] text-ink">
+                Feitos <em className="text-batom">({done.length})</em>
+              </h2>
+              <ul className="rotate-[0.4deg] rounded-[6px] bg-sheet px-4 shadow-paper">
                 {done.map((item) => (
                   <ItemRow key={item.id} item={item} busy={busyId === item.id} onToggle={toggle} onRemove={remove} onMoment={toMoment} />
                 ))}
@@ -283,7 +292,7 @@ function ListDetail({ list, onBack, onDeleted }: { list: List; onBack: () => voi
             <Button variant="danger" onClick={deleteList}>Apagar lista e itens</Button>
           </div>
         ) : (
-          <button onClick={() => setConfirmDelete(true)} className="flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-red-600">
+          <button onClick={() => setConfirmDelete(true)} className="flex items-center gap-1 text-xs font-semibold text-faint hover:text-danger">
             <Trash2 className="size-3.5" /> Apagar lista
           </button>
         )}
@@ -306,31 +315,33 @@ function ItemRow({
   onMoment?: (item: ListItem) => void;
 }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-rose-100">
+    <li className="flex items-center gap-3 border-b border-rule py-2.5 last:border-0">
       <button
         onClick={() => onToggle(item)}
         disabled={busy}
         aria-label={item.done ? "Desmarcar" : "Marcar como feito"}
-        className={`flex size-6 shrink-0 items-center justify-center rounded-full ring-2 transition ${
-          item.done ? "bg-rose-500 text-white ring-rose-500" : "ring-stone-300"
-        }`}
+        className="flex size-6 shrink-0 items-center justify-center rounded-md bg-sheet outline outline-[1.5px] outline-dashed outline-rose-line"
       >
-        {item.done && <Check className="size-4" />}
+        <Heart
+          className={`size-4 fill-batom text-batom transition-transform duration-[350ms] ease-[cubic-bezier(.3,1.8,.5,1)] ${item.done ? "scale-100" : "scale-0"}`}
+        />
       </button>
-      <span className={`min-w-0 flex-1 ${item.done ? "text-stone-400 line-through" : "text-stone-800"}`}>{item.text}</span>
+      <span className={`min-w-0 flex-1 font-hand text-[23px] leading-tight ${item.done ? "text-faint line-through decoration-rose-wave decoration-2" : "text-ink"}`}>
+        {item.text}
+      </span>
       {onMoment &&
         (item.moment_id ? (
-          <CalendarHeart className="size-4 shrink-0 text-rose-400" aria-label="Já está no calendário" />
+          <CalendarHeart className="size-4 shrink-0 text-batom" aria-label="Já está no calendário" />
         ) : (
           <button
             onClick={() => onMoment(item)}
             disabled={busy}
-            className="shrink-0 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600"
+            className="shrink-0 font-hand text-lg leading-none text-batom underline decoration-rose-wave decoration-wavy underline-offset-4"
           >
             Virar momento
           </button>
         ))}
-      <button onClick={() => onRemove(item)} disabled={busy} className="shrink-0 rounded-full p-1 text-stone-300 hover:text-red-600" aria-label="Remover item">
+      <button onClick={() => onRemove(item)} disabled={busy} className="shrink-0 rounded-full p-1 text-faint hover:text-danger" aria-label="Remover item">
         <Trash2 className="size-4" />
       </button>
     </li>

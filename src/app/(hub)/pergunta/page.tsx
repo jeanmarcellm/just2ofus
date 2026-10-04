@@ -3,7 +3,7 @@
 import { Lock, MessageCircleHeart, Pencil } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
-import { Avatar, Button, Card, ErrorText, Spinner, SubPageHeader, Textarea } from "@/components/ui";
+import { Avatar, Button, Card, ErrorText, SectionTitle, Spinner, SubPageHeader, Textarea, WaxSeal } from "@/components/ui";
 import { fetchDailyStatus } from "@/lib/daily";
 import { formatDay } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
@@ -69,35 +69,43 @@ export default function DailyQuestionPage() {
   const showForm = !mine || editing;
 
   return (
-    <div className="flex flex-col gap-5">
-      <SubPageHeader title="Pergunta do dia" subtitle="Uma pergunta por dia, a mesma para os dois" />
+    <div className="flex flex-col gap-6">
+      <SubPageHeader title="Pergunta do dia" subtitle="uma pergunta por dia, a mesma para os dois" />
 
-      <section className="rounded-[2rem] bg-gradient-to-br from-rose-500 to-fuchsia-500 p-6 text-white shadow-lg shadow-rose-500/30">
-        <p className="text-sm font-medium capitalize text-rose-100">{formatDay(status.day, "EEEE, d 'de' MMMM")}</p>
-        <p className="mt-2 text-xl font-bold leading-snug">{question?.prompt ?? "Sem perguntas cadastradas."}</p>
+      <section className="relative rotate-[-0.6deg] overflow-hidden rounded-[6px] bg-kraft px-5 pt-[22px] pb-6 shadow-paper">
+        <span
+          aria-hidden
+          className="absolute top-0 right-0 block size-11 bg-[linear-gradient(225deg,#e9e1d6_50%,#e3d4c4_50%)] shadow-[-3px_3px_6px_-3px_rgba(80,50,40,.3)]"
+        />
+        <p className="text-xs font-semibold tracking-[.14em] text-terracota uppercase">{formatDay(status.day, "EEEE, d 'de' MMMM")}</p>
+        <p className="mt-2 pr-[30px] font-serif text-[30px] leading-[1.1] text-balance text-ink italic">
+          {question?.prompt ?? "Sem perguntas cadastradas."}
+        </p>
       </section>
 
       {question && (
-        <Card>
-          <div className="mb-3 flex items-center gap-2">
-            <Avatar name={profile.display_name} className="size-8 text-xs" />
-            <p className="font-semibold text-stone-900">Sua resposta</p>
+        <Card tape="rose" tilt={0.4}>
+          <div className="mb-3 flex items-center gap-3">
+            <Avatar name={profile.display_name} size="sm" />
+            <p className="font-serif text-[22px] text-ink">
+              Sua <em>resposta</em>
+            </p>
           </div>
           {showForm ? (
             <form onSubmit={save} className="flex flex-col gap-3">
-              <Textarea required maxLength={1000} rows={4} placeholder="Escreva com carinho…" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+              <Textarea required maxLength={1000} rows={4} value={answer} onChange={(e) => setAnswer(e.target.value)} />
               <ErrorText>{error}</ErrorText>
               <Button type="submit" loading={busy}>{mine ? "Salvar" : "Responder"}</Button>
             </form>
           ) : (
             <div className="flex items-start justify-between gap-3">
-              <p className="whitespace-pre-wrap text-stone-700">{mine!.answer}</p>
+              <p className="font-hand text-[23px] leading-[1.2] whitespace-pre-wrap text-ink">{mine!.answer}</p>
               <button
                 onClick={() => {
                   setAnswer(mine!.answer);
                   setEditing(true);
                 }}
-                className="shrink-0 rounded-full p-2 text-stone-400 hover:bg-rose-50 hover:text-rose-600"
+                className="shrink-0 rounded-full p-2 text-faint hover:bg-kraft hover:text-batom"
                 aria-label="Editar resposta"
               >
                 <Pencil className="size-4" />
@@ -108,16 +116,20 @@ export default function DailyQuestionPage() {
       )}
 
       {question && partner && (
-        <Card className={theirs ? "" : "bg-stone-50"}>
-          <div className="mb-3 flex items-center gap-2">
-            <Avatar name={partner.display_name} className="size-8 bg-violet-100 text-xs text-violet-600" />
-            <p className="font-semibold text-stone-900">Resposta de {partnerName}</p>
+        <Card tape="sage" tilt={-0.5}>
+          <div className="mb-3 flex items-center gap-3">
+            <Avatar name={partner.display_name} tone="partner" size="sm" tilt={5} />
+            <p className="font-serif text-[22px] text-ink">
+              Resposta de <em>{partnerName}</em>
+            </p>
           </div>
           {theirs ? (
-            <p className="whitespace-pre-wrap text-stone-700">{theirs.answer}</p>
+            <p className="font-hand text-[23px] leading-[1.2] whitespace-pre-wrap text-ink">{theirs.answer}</p>
           ) : (
-            <p className="flex items-center gap-2 text-sm text-stone-500">
-              <Lock className="size-4 shrink-0" />
+            <p className="flex items-center gap-3 font-hand text-[21px] leading-[1.1] text-ink-soft">
+              <WaxSeal size={34} className="animate-sway">
+                <Lock className="size-4" strokeWidth={2.2} />
+              </WaxSeal>
               {partnerAnswered
                 ? `${partnerName} já respondeu! Responda também para ver.`
                 : `${partnerName} ainda não respondeu.`}
@@ -128,19 +140,19 @@ export default function DailyQuestionPage() {
 
       {pastDays.length > 0 && (
         <section>
-          <h2 className="mb-3 font-semibold text-stone-900">Respostas anteriores</h2>
+          <SectionTitle title="Respostas anteriores" />
           <ul className="flex flex-col gap-3">
             {pastDays.map((d) => (
-              <li key={d.day} className="rounded-3xl bg-white p-5 ring-1 ring-rose-100">
-                <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">{formatDay(d.day, "d 'de' MMM yyyy")}</p>
-                <p className="mt-1 font-semibold text-stone-900">{d.prompt}</p>
-                <div className="mt-3 flex flex-col gap-2 text-sm">
-                  <p className="rounded-2xl bg-rose-50 px-4 py-2 text-stone-700">
-                    <span className="font-semibold text-rose-600">Você: </span>
+              <li key={d.day} className="rounded-[6px] bg-sheet p-5 shadow-paper">
+                <p className="text-xs font-semibold tracking-[.14em] text-terracota uppercase">{formatDay(d.day, "d 'de' MMM yyyy")}</p>
+                <p className="mt-1 font-serif text-xl leading-tight text-ink italic">{d.prompt}</p>
+                <div className="mt-3 flex flex-col gap-2 font-hand text-[21px] leading-[1.15]">
+                  <p className="rotate-[-0.5deg] rounded-[4px] bg-blush/60 px-3.5 py-2 text-ink">
+                    <b className="font-bold text-batom">Você: </b>
                     {d.mine.answer}
                   </p>
-                  <p className="rounded-2xl bg-violet-50 px-4 py-2 text-stone-700">
-                    <span className="font-semibold text-violet-600">{partnerName}: </span>
+                  <p className="rotate-[0.5deg] rounded-[4px] bg-sage-soft/70 px-3.5 py-2 text-ink">
+                    <b className="font-bold text-sage-ink">{partnerName}: </b>
                     {d.theirs.answer}
                   </p>
                 </div>
@@ -151,7 +163,7 @@ export default function DailyQuestionPage() {
       )}
 
       {pastDays.length === 0 && mine && (
-        <p className="flex items-center justify-center gap-2 text-center text-sm text-stone-400">
+        <p className="flex items-center justify-center gap-2 text-center font-hand text-xl text-faint">
           <MessageCircleHeart className="size-4" /> As respostas dos dias anteriores aparecem aqui.
         </p>
       )}

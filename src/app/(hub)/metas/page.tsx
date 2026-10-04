@@ -4,6 +4,7 @@ import { ImagePlus, Pencil, Plus, Target, Trash2, Trophy } from "lucide-react";
 import { useState } from "react";
 import { useCouple } from "@/components/auth-provider";
 import {
+  Card,
   Button,
   EmojiPicker,
   EmptyState,
@@ -14,6 +15,7 @@ import {
   Spinner,
   SubPageHeader,
   Tabs,
+  Tape,
 } from "@/components/ui";
 import { formatDay, toDayString } from "@/lib/dates";
 import { signedUrls, uploadPhoto } from "@/lib/photos";
@@ -52,7 +54,7 @@ export default function GoalsPage() {
     <div>
       <SubPageHeader
         title="Metas do casal"
-        subtitle="Coisas para fazer juntos"
+        subtitle="coisas para fazer juntos"
         action={
           <Button className="px-4" onClick={() => setDraft({ emoji: EMOJIS[0], title: "", target_on: "" })}>
             <Plus className="size-4" /> Meta
@@ -61,17 +63,21 @@ export default function GoalsPage() {
       />
 
       {goals.length > 0 && (
-        <div className="mb-5 rounded-3xl bg-white p-5 ring-1 ring-rose-100">
-          <div className="flex items-baseline justify-between">
-            <p className="font-semibold text-stone-900">Progresso</p>
-            <p className="text-sm text-stone-500">
-              <span className="text-lg font-bold text-emerald-600">{done.length}</span> de {goals.length} realizadas
+        <Card tape="sage" tilt={-0.5} className="mb-6">
+          <div className="flex items-end justify-between gap-3">
+            <p className="font-hand text-[26px] leading-none text-batom">nosso progresso</p>
+            <p className="text-sm text-muted">
+              <span className="font-serif text-4xl leading-none text-ink">{done.length}</span> de {goals.length} realizadas
             </p>
           </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-emerald-100">
-            <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${(done.length / goals.length) * 100}%` }} />
+          <div className="relative mt-4 h-1 rounded-sm bg-[#f1e6db]">
+            <div className="h-1 rounded-sm bg-rose-wave transition-all" style={{ width: `${Math.max(2, (done.length / goals.length) * 100)}%` }} />
+            <Trophy
+              className="absolute -top-2 -ml-2 size-4 fill-mustard text-[#7a5a22]"
+              style={{ left: `${Math.max(2, (done.length / goals.length) * 100)}%` }}
+            />
           </div>
-        </div>
+        </Card>
       )}
 
       <Tabs
@@ -92,26 +98,31 @@ export default function GoalsPage() {
           text={tab === "open" ? "Ver a aurora boreal, aprender a dançar, adotar um pet… o que vocês sonham fazer?" : "Quando realizarem uma meta, ela aparece aqui com foto."}
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {list.map((goal) => (
-            <li key={goal.id} className="overflow-hidden rounded-3xl bg-white ring-1 ring-rose-100">
+        <ul className="flex flex-col gap-6 pt-2">
+          {list.map((goal, i) => (
+            <li
+              key={goal.id}
+              className={`relative rounded-[6px] bg-sheet shadow-paper ${goal.photo_id && data.urls[goal.photo_id] ? "p-2 pb-0" : ""}`}
+              style={{ rotate: `${i % 2 ? 0.6 : -0.6}deg` }}
+            >
+              <Tape color={goal.done_on ? "sage" : "rose"} className="-top-[10px] left-6 h-5 w-14" rotate={i % 2 ? 5 : -5} />
               {goal.photo_id && data.urls[goal.photo_id] && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={data.urls[goal.photo_id]} alt="" className="h-44 w-full object-cover" />
+                <img src={data.urls[goal.photo_id]} alt="" className="h-48 w-full object-cover" />
               )}
               <div className="flex items-start gap-3 p-5">
                 <span className="text-3xl">{goal.emoji}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-stone-900">{goal.title}</p>
+                  <p className="font-serif text-[22px] leading-tight text-ink">{goal.title}</p>
                   {goal.done_on ? (
-                    <p className="text-sm text-emerald-700">Realizada em {formatDay(goal.done_on)} 🎉</p>
+                    <p className="font-hand text-xl leading-tight text-sage-ink">realizada em {formatDay(goal.done_on)} 🎉</p>
                   ) : (
-                    goal.target_on && <p className="text-sm text-stone-500">Até {formatDay(goal.target_on)}</p>
+                    goal.target_on && <p className="font-hand text-xl leading-tight text-muted">até {formatDay(goal.target_on)}</p>
                   )}
                 </div>
                 <button
                   onClick={() => setDraft({ id: goal.id, emoji: goal.emoji, title: goal.title, target_on: goal.target_on ?? "" })}
-                  className="shrink-0 rounded-full p-2 text-stone-400 hover:bg-rose-50 hover:text-rose-600"
+                  className="shrink-0 rounded-full p-2 text-faint hover:bg-kraft hover:text-batom"
                   aria-label="Editar meta"
                 >
                   <Pencil className="size-4" />
@@ -166,7 +177,7 @@ function GoalSheet({ draft, onClose, onSaved }: { draft: Draft; onClose: () => v
       <form onSubmit={save} className="flex flex-col gap-5">
         <EmojiPicker value={form.emoji} onChange={(emoji) => setForm({ ...form, emoji })} options={EMOJIS} />
         <Field label="O que vocês querem fazer?">
-          <Input required maxLength={120} placeholder="Ex: Ver a neve juntos" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Input required maxLength={120} placeholder="ex: ver a neve juntos" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="Até quando? (opcional)">
           <Input type="date" value={form.target_on} onChange={(e) => setForm({ ...form, target_on: e.target.value })} />
@@ -221,11 +232,11 @@ function RealizeSheet({ goal, onClose, onSaved }: { goal: Goal; onClose: () => v
   return (
     <Sheet open onClose={onClose} title={`${goal.emoji} ${goal.title}`}>
       <form onSubmit={save} className="flex flex-col gap-5">
-        <p className="text-sm text-stone-500">Parabéns! 🎉 A meta vira um momento no calendário, e a foto vai para o álbum como especial.</p>
+        <p className="font-hand text-[21px] leading-tight text-ink-soft">Parabéns! 🎉 A meta vira um momento no calendário, e a foto vai para o álbum como especial.</p>
         <Field label="Quando realizaram?">
           <Input type="date" required max={toDayString(new Date())} value={doneOn} onChange={(e) => setDoneOn(e.target.value)} />
         </Field>
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-rose-300 bg-rose-50/50 py-4 text-sm font-semibold text-rose-600">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[6px] border-[1.5px] border-dashed border-rose-line bg-sheet py-4 font-hand text-[21px] text-batom">
           <ImagePlus className="size-5" />
           {file ? file.name : "Adicionar uma foto (opcional)"}
           <input type="file" accept="image/*" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

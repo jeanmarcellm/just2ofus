@@ -40,7 +40,7 @@ export default function SpecialDatesPage() {
     <div>
       <SubPageHeader
         title="Datas especiais"
-        subtitle="Para nunca esquecer o que importa"
+        subtitle="para nunca esquecer o que importa"
         action={
           <Button className="px-4" onClick={() => setDraft({ emoji: EMOJIS[0], title: "", day: "", yearly: true })}>
             <Plus className="size-4" /> Data
@@ -70,7 +70,9 @@ export default function SpecialDatesPage() {
           )}
           {past.length > 0 && (
             <>
-              <h2 className="mt-6 mb-3 text-sm font-semibold text-stone-500">Já passaram</h2>
+              <h2 className="mt-7 mb-3 font-serif text-[22px] text-ink">
+                Já <em>passaram</em>
+              </h2>
               <ul className="flex flex-col gap-3 opacity-70">
                 {past.map((d) => (
                   <DateRow
@@ -95,19 +97,24 @@ function DateRow({ date, onEdit }: { date: UpcomingDate; onEdit?: () => void }) 
   const soon = date.daysLeft >= 0 && date.daysLeft <= 7;
   const content = (
     <>
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-2xl">{date.emoji}</span>
+      <span className="w-14 shrink-0 -rotate-2 overflow-hidden rounded-[4px] bg-sheet text-center shadow-[0_6px_12px_-6px_rgba(80,50,40,.45)]">
+        <span className="block py-0.5 text-[10px] font-bold tracking-[.18em] text-sheet uppercase" style={{ background: soon ? "#b4475a" : "#8aa386" }}>
+          {formatDay(date.next, "MMM").replace(".", "")}
+        </span>
+        <span className="block font-serif text-[28px] leading-[1.1] text-ink">{formatDay(date.next, "d")}</span>
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold text-stone-900">{date.title}</span>
-        <span className="flex items-center gap-1 text-sm text-stone-500">
-          {formatDay(date.next, "d 'de' MMMM")}
+        <span className="block font-serif text-[22px] leading-tight text-ink">
+          {date.emoji} {date.title}
+        </span>
+        <span className="flex items-center gap-1 font-hand text-lg leading-tight text-muted">
+          {formatDay(date.next, "EEEE")}
           {date.yearly && <Repeat className="size-3.5" aria-label="Todo ano" />}
           {years && <span>· {years}</span>}
         </span>
       </span>
       <span
-        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-          soon ? "bg-rose-500 text-white" : "bg-stone-100 text-stone-600"
-        }`}
+        className={`shrink-0 font-hand text-xl leading-none ${soon ? "text-batom" : "text-ink-soft"}`}
       >
         {daysLeftLabel(date.daysLeft)}
       </span>
@@ -116,11 +123,11 @@ function DateRow({ date, onEdit }: { date: UpcomingDate; onEdit?: () => void }) 
   return (
     <li>
       {onEdit ? (
-        <button onClick={onEdit} className="flex w-full items-center gap-3 rounded-3xl bg-white p-4 text-left ring-1 ring-rose-100">
+        <button onClick={onEdit} className="flex w-full items-center gap-3 rounded-[6px] bg-sheet p-4 text-left shadow-paper">
           {content}
         </button>
       ) : (
-        <div className="flex items-center gap-3 rounded-3xl bg-white p-4 ring-1 ring-rose-100">{content}</div>
+        <div className="flex items-center gap-3 rounded-[6px] bg-sheet p-4 shadow-paper">{content}</div>
       )}
     </li>
   );
@@ -157,7 +164,7 @@ function DateSheet({ draft, onClose, onSaved }: { draft: Draft; onClose: () => v
       <form onSubmit={save} className="flex flex-col gap-5">
         <EmojiPicker value={form.emoji} onChange={(emoji) => setForm({ ...form, emoji })} options={EMOJIS} />
         <Field label="Nome">
-          <Input required maxLength={80} placeholder="Ex: Aniversário da Ana" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Input required maxLength={80} placeholder="ex: aniversário da Ana" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="Data" hint="Para aniversários, use a data de nascimento: o app calcula a idade.">
           <Input type="date" required value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} />

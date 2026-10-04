@@ -1,12 +1,11 @@
 "use client";
 
-import { ChevronLeft, HeartHandshake, LogOut } from "lucide-react";
-import Link from "next/link";
+import { HeartHandshake, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCouple } from "@/components/auth-provider";
 import { InviteCard } from "@/components/invite-card";
-import { Avatar, Button, Card, ErrorText, Field, Input } from "@/components/ui";
+import { Button, Card, CouplePolaroids, ErrorText, Field, Input, SubPageHeader } from "@/components/ui";
 import { formatDay, toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 
@@ -44,42 +43,36 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex items-center gap-2">
-        <Link href="/inicio" className="-ml-2 rounded-full p-2 hover:bg-rose-50" aria-label="Voltar">
-          <ChevronLeft className="size-5 text-stone-600" />
-        </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900">Perfil</h1>
-      </header>
+    <div className="flex flex-col gap-6">
+      <SubPageHeader title="Perfil" subtitle="seus dados e o convite" />
 
-      <Card className="flex items-center gap-4">
-        <div className="flex -space-x-3">
-          <Avatar name={profile.display_name} className="size-14 text-lg" />
-          {partner && <Avatar name={partner.display_name} className="size-14 bg-violet-100 text-lg text-violet-600" />}
-        </div>
+      <Card tape="rose" tilt={-0.5} className="flex items-center gap-4">
+        <CouplePolaroids me={profile.display_name} partner={partner?.display_name} />
         <div className="min-w-0">
-          <p className="font-semibold text-stone-900">
+          <p className="font-serif text-[22px] leading-tight text-ink">
             {partner ? `${profile.display_name} & ${partner.display_name}` : profile.display_name}
           </p>
-          <p className="truncate text-sm text-stone-500">{session.user.email}</p>
-          <p className="text-sm text-stone-500">Juntos desde {formatDay(couple.together_since)}</p>
+          <p className="truncate text-sm text-muted">{session.user.email}</p>
+          <p className="font-hand text-xl leading-tight text-batom">juntos desde {formatDay(couple.together_since)}</p>
         </div>
       </Card>
 
       {!partner && (
-        <Card>
-          <div className="mb-4 flex items-center gap-2">
-            <HeartHandshake className="size-5 text-rose-500" />
-            <h2 className="font-semibold text-stone-900">Convide seu amor</h2>
+        <Card tape="sage" tilt={0.5}>
+          <div className="mb-3 flex items-center gap-2">
+            <HeartHandshake className="size-5 text-batom" />
+            <h2 className="font-serif text-[22px] leading-tight text-ink">
+              Convide seu <em>amor</em>
+            </h2>
           </div>
-          <p className="mb-4 text-sm text-stone-500">
+          <p className="mb-4 font-hand text-xl leading-tight text-muted">
             Envie o link. Ao abrir, a pessoa cria a conta dela e vocês ficam conectados.
           </p>
           <InviteCard inviterName={profile.display_name} />
         </Card>
       )}
 
-      <Card>
+      <Card tilt={-0.3}>
         <form onSubmit={save} className="flex flex-col gap-5">
           <Field label="Seu nome">
             <Input required value={name} onChange={(e) => setName(e.target.value)} />

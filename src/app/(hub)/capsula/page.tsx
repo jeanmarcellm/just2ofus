@@ -14,6 +14,7 @@ import {
   Spinner,
   SubPageHeader,
   Textarea,
+  WaxSeal,
 } from "@/components/ui";
 import { daysLeftLabel, formatDay, startOfDayIso, toDayString } from "@/lib/dates";
 import { compressImage } from "@/lib/images";
@@ -44,7 +45,7 @@ export default function CapsulePage() {
     <div>
       <SubPageHeader
         title="Cápsula do tempo"
-        subtitle="Mensagens que só abrem no futuro"
+        subtitle="mensagens que só abrem no futuro"
         action={
           <Button className="px-4" onClick={() => setCreating(true)}>
             <Plus className="size-4" /> Cápsula
@@ -64,17 +65,19 @@ export default function CapsulePage() {
         <div className="flex flex-col gap-6">
           {open.length > 0 && (
             <section>
-              <h2 className="mb-3 text-sm font-semibold text-stone-500">Abertas</h2>
+              <h2 className="mb-3 font-serif text-[22px] text-ink">
+                Já <em>abertas</em>
+              </h2>
               <ul className="flex flex-col gap-3">
                 {open.map((c) => (
                   <li key={c.id}>
-                    <button onClick={() => setOpened(c)} className="flex w-full items-center gap-3 rounded-3xl bg-white p-4 text-left ring-1 ring-indigo-100">
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
+                    <button onClick={() => setOpened(c)} className="flex w-full items-center gap-3 rounded-[6px] bg-sheet p-4 text-left shadow-paper">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sticker text-batom shadow-sticker">
                         <LockOpen className="size-5" />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block font-semibold text-stone-900">{c.title}</span>
-                        <span className="text-sm text-stone-500">
+                        <span className="block font-serif text-[22px] leading-tight text-ink">{c.title}</span>
+                        <span className="font-hand text-lg leading-tight text-muted">
                           De {author(c)} · aberta em {formatDay(parseISO(c.opens_at), "d 'de' MMM yyyy")}
                         </span>
                       </span>
@@ -86,7 +89,9 @@ export default function CapsulePage() {
           )}
           {locked.length > 0 && (
             <section>
-              <h2 className="mb-3 text-sm font-semibold text-stone-500">Lacradas</h2>
+              <h2 className="mb-3 font-serif text-[22px] text-ink">
+                Ainda <em>lacradas</em>
+              </h2>
               <ul className="flex flex-col gap-3">
                 {locked.map((c) => (
                   <LockedRow key={c.id} capsule={c} author={author(c)} mine={c.created_by === profile.id} onDeleted={load} />
@@ -118,28 +123,31 @@ function LockedRow({ capsule, author, mine, onDeleted }: { capsule: Capsule; aut
   }
 
   return (
-    <li className="rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-500 p-5 text-white">
+    <li className="relative overflow-hidden rounded-[6px] bg-envelope px-5 pt-16 pb-4 shadow-paper">
+      <span aria-hidden className="absolute inset-x-0 top-0 block h-14 bg-envelope-flap [clip-path:polygon(0_0,100%_0,50%_100%)]" />
+      <WaxSeal size={40} className="absolute top-8 left-1/2 -ml-5">
+        <Lock className="size-4" strokeWidth={2.2} />
+      </WaxSeal>
       <div className="flex items-start gap-3">
-        <Lock className="mt-0.5 size-5 shrink-0 text-indigo-100" />
         <div className="min-w-0 flex-1">
-          <p className="font-semibold">{capsule.title}</p>
-          <p className="text-sm text-indigo-100">
+          <p className="font-serif text-[22px] leading-tight text-ink">{capsule.title}</p>
+          <p className="font-hand text-lg leading-tight text-ink-soft">
             De {author} · abre em {formatDay(parseISO(capsule.opens_at), "d 'de' MMM yyyy")}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">{daysLeftLabel(daysLeft)}</span>
+        <span className="shrink-0 text-xs font-semibold tracking-[.12em] text-terracota uppercase">{daysLeftLabel(daysLeft)}</span>
       </div>
       {mine && (
         <div className="mt-3 flex justify-end">
           {confirm ? (
             <div className="flex gap-2">
-              <button onClick={() => setConfirm(false)} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">Manter</button>
-              <button onClick={remove} disabled={busy} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-red-600">
+              <button onClick={() => setConfirm(false)} className="rounded-full bg-sheet px-3 py-1 text-xs font-semibold text-ink">Manter</button>
+              <button onClick={remove} disabled={busy} className="rounded-full bg-danger px-3 py-1 text-xs font-semibold text-sheet">
                 Apagar sem abrir
               </button>
             </div>
           ) : (
-            <button onClick={() => setConfirm(true)} className="flex items-center gap-1 text-xs font-semibold text-indigo-100 hover:text-white">
+            <button onClick={() => setConfirm(true)} className="flex items-center gap-1 text-xs font-semibold text-terracota hover:text-danger">
               <Trash2 className="size-3.5" /> Apagar
             </button>
           )}
@@ -169,7 +177,7 @@ function OpenedSheet({ capsule, author, onClose }: { capsule: Capsule; author: s
 
   return (
     <Sheet open onClose={onClose} title={capsule.title}>
-      <p className="mb-4 text-sm text-stone-500">
+      <p className="mb-4 font-hand text-xl leading-tight text-muted">
         Escrita por {author} em {formatDay(parseISO(capsule.created_at))}
       </p>
       {message === null ? (
@@ -178,9 +186,9 @@ function OpenedSheet({ capsule, author, onClose }: { capsule: Capsule; author: s
         <div className="flex flex-col gap-4">
           {url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt="" className="max-h-[50dvh] w-full rounded-2xl bg-stone-100 object-contain" />
+            <img src={url} alt="" className="max-h-[50dvh] w-full bg-kraft object-contain p-1.5 pb-6 shadow-polaroid" />
           )}
-          <p className="whitespace-pre-wrap rounded-2xl bg-indigo-50 p-5 text-stone-800">{message}</p>
+          <p className="rotate-[-0.5deg] rounded-[4px] bg-sheet bg-[repeating-linear-gradient(transparent_0_29px,#f0e4d8_29px_30px)] px-4 py-1 font-hand text-[23px] leading-[30px] whitespace-pre-wrap text-ink shadow-paper">{message}</p>
         </div>
       )}
     </Sheet>
@@ -236,7 +244,7 @@ function NewCapsuleSheet({ onClose, onSaved }: { onClose: () => void; onSaved: (
     <Sheet open onClose={onClose} title="Nova cápsula do tempo">
       <form onSubmit={save} className="flex flex-col gap-5">
         <Field label="Título" hint="Aparece para os dois enquanto a cápsula estiver lacrada.">
-          <Input required maxLength={80} placeholder="Ex: Para abrirmos no nosso 5º aniversário" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input required maxLength={80} placeholder="ex: para abrirmos no nosso 5º aniversário" value={title} onChange={(e) => setTitle(e.target.value)} />
         </Field>
         <Field label="Mensagem" hint="Depois de lacrada, ninguém consegue ler nem editar até a data.">
           <Textarea required maxLength={5000} rows={6} value={message} onChange={(e) => setMessage(e.target.value)} />
@@ -244,7 +252,7 @@ function NewCapsuleSheet({ onClose, onSaved }: { onClose: () => void; onSaved: (
         <Field label="Abre em">
           <Input type="date" required min={tomorrow} value={opensOn} onChange={(e) => setOpensOn(e.target.value)} />
         </Field>
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/50 py-4 text-sm font-semibold text-indigo-600">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[6px] border-[1.5px] border-dashed border-rose-line bg-sheet py-4 font-hand text-[21px] text-batom">
           <ImagePlus className="size-5" />
           {file ? file.name : "Incluir uma foto (opcional)"}
           <input type="file" accept="image/*" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

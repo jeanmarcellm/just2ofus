@@ -17,7 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Wine } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
-import { Button, Card, ErrorText, Field, Input, PageHeader, Sheet, Textarea } from "@/components/ui";
+import { Button, Card, EmojiPicker, ErrorText, Field, Input, PageHeader, Sheet, Textarea } from "@/components/ui";
 import { formatDay, toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
 import { useLoader } from "@/lib/use-loader";
@@ -96,7 +96,7 @@ export default function CalendarPage() {
     <div>
       <PageHeader
         title="Calendário"
-        subtitle="As coisas que vocês viveram juntos"
+        subtitle="as coisas que vocês viveram juntos"
         action={
           <Button
             className="px-4"
@@ -107,17 +107,17 @@ export default function CalendarPage() {
         }
       />
 
-      <Card className="p-4">
+      <Card tape="sage" tilt={-0.4} className="p-4 pt-5">
         <div className="mb-3 flex items-center justify-between">
-          <button onClick={() => setMonth((m) => addMonths(m, -1))} className="rounded-full p-2 hover:bg-rose-50" aria-label="Mês anterior">
-            <ChevronLeft className="size-5 text-stone-600" />
+          <button onClick={() => setMonth((m) => addMonths(m, -1))} className="rounded-full p-2 hover:bg-kraft" aria-label="Mês anterior">
+            <ChevronLeft className="size-5 text-muted" />
           </button>
-          <p className="font-semibold capitalize text-stone-900">{format(month, "MMMM yyyy", { locale: ptBR })}</p>
-          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="rounded-full p-2 hover:bg-rose-50" aria-label="Próximo mês">
-            <ChevronRight className="size-5 text-stone-600" />
+          <p className="font-serif text-[26px] leading-none text-ink capitalize">{format(month, "MMMM", { locale: ptBR })} <em className="text-batom">{format(month, "yyyy")}</em></p>
+          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="rounded-full p-2 hover:bg-kraft" aria-label="Próximo mês">
+            <ChevronRight className="size-5 text-muted" />
           </button>
         </div>
-        <div className="grid grid-cols-7 text-center text-xs font-semibold text-stone-400">
+        <div className="grid grid-cols-7 text-center font-hand text-lg text-terracota">
           {WEEKDAYS.map((d, i) => (
             <span key={i} className="py-1">{d}</span>
           ))}
@@ -131,21 +131,21 @@ export default function CalendarPage() {
               <button
                 key={key}
                 onClick={() => setSelected(key)}
-                className={`flex aspect-square flex-col items-center justify-center rounded-2xl text-sm transition ${
+                className={`flex aspect-square flex-col items-center justify-center rounded-full text-sm tabular-nums transition ${
                   isSelected
-                    ? "bg-rose-500 font-bold text-white"
+                    ? "bg-batom font-bold text-sheet shadow-[inset_0_-3px_0_rgba(0,0,0,.18)]"
                     : key === today
-                      ? "font-bold text-rose-600 ring-1 ring-rose-200"
+                      ? "font-bold text-batom outline outline-[1.5px] outline-dashed outline-rose-line"
                       : isSameMonth(day, month)
-                        ? "text-stone-700 hover:bg-rose-50"
-                        : "text-stone-300"
+                        ? "text-ink hover:bg-kraft"
+                        : "text-faint"
                 }`}
               >
                 {day.getDate()}
                 <span className="mt-0.5 flex h-1.5 gap-0.5">
-                  {!!items?.moments.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-white" : "bg-rose-400"}`} />}
-                  {!!items?.dates.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-violet-200" : "bg-violet-400"}`} />}
-                  {!!items?.special.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-amber-200" : "bg-amber-400"}`} />}
+                  {!!items?.moments.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-sheet" : "bg-batom"}`} />}
+                  {!!items?.dates.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-sage-soft" : "bg-sage"}`} />}
+                  {!!items?.special.length && <span className={`size-1.5 rounded-full ${isSelected ? "bg-[#ecd696]" : "bg-mustard"}`} />}
                 </span>
               </button>
             );
@@ -154,20 +154,20 @@ export default function CalendarPage() {
       </Card>
 
       <section className="mt-6">
-        <h2 className="mb-3 font-semibold capitalize text-stone-900">{formatDay(selected, "EEEE, d 'de' MMMM")}</h2>
+        <h2 className="mb-3 font-serif text-[26px] leading-tight text-ink first-letter:uppercase">{formatDay(selected, "EEEE, d 'de' MMMM")}</h2>
         {!selectedItems?.moments.length && !selectedItems?.dates.length && !selectedItems?.special.length && !selectedItems?.moods.length ? (
-          <p className="rounded-2xl border border-dashed border-rose-200 p-5 text-center text-sm text-stone-500">
+          <p className="rounded-[6px] border-[1.5px] border-dashed border-line p-5 text-center font-hand text-xl text-muted">
             Nada registrado neste dia.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
             {selectedItems?.special.map((sd) => (
-              <li key={sd.id} className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+              <li key={sd.id} className="flex items-center gap-3 rounded-[6px] bg-[#faf3e0] p-4 shadow-paper">
                 <span className="text-2xl">{sd.emoji}</span>
                 <span>
-                  <span className="block font-semibold text-amber-900">{sd.title}</span>
+                  <span className="block font-serif text-xl leading-tight text-[#7a5a22]">{sd.title}</span>
                   {sd.yearly && sd.years > 0 && (
-                    <span className="text-sm text-amber-700">{sd.years} {sd.years === 1 ? "ano" : "anos"}</span>
+                    <span className="font-hand text-lg text-[#7a5a22]">{sd.years} {sd.years === 1 ? "ano" : "anos"}</span>
                   )}
                 </span>
               </li>
@@ -178,34 +178,34 @@ export default function CalendarPage() {
                   onClick={() =>
                     setDraft({ id: m.id, emoji: m.emoji, title: m.title, happened_on: m.happened_on, description: m.description ?? "" })
                   }
-                  className="flex w-full items-start gap-3 rounded-2xl bg-white p-4 text-left ring-1 ring-rose-100"
+                  className="flex w-full items-start gap-3 rounded-[6px] bg-sheet p-4 text-left shadow-paper"
                 >
                   <span className="text-2xl">{m.emoji}</span>
                   <span className="min-w-0">
-                    <span className="block font-semibold text-stone-900">{m.title}</span>
-                    {m.description && <span className="mt-0.5 block text-sm text-stone-500">{m.description}</span>}
+                    <span className="block font-serif text-xl leading-tight text-ink">{m.title}</span>
+                    {m.description && <span className="mt-0.5 block font-hand text-xl leading-tight text-muted">{m.description}</span>}
                   </span>
                 </button>
               </li>
             ))}
             {selectedItems?.dates.map((d) => (
-              <li key={d.id} className="flex items-center gap-3 rounded-2xl bg-violet-50 p-4 ring-1 ring-violet-100">
-                <Wine className="size-5 text-violet-500" />
+              <li key={d.id} className="flex items-center gap-3 rounded-[6px] bg-sage-soft/60 p-4 shadow-paper">
+                <Wine className="size-5 text-sage-ink" />
                 <span>
-                  <span className="block font-semibold text-violet-900">{d.title}</span>
-                  <span className="text-sm text-violet-700">
+                  <span className="block font-serif text-xl leading-tight text-sage-ink">{d.title}</span>
+                  <span className="text-sm text-sage-ink">
                     {d.status === "done" ? "Date realizado" : `Date às ${format(parseISO(d.scheduled_at), "HH:mm")}`}
                   </span>
                 </span>
               </li>
             ))}
             {!!selectedItems?.moods.length && (
-              <li className="flex flex-col gap-2 rounded-2xl bg-white p-4 ring-1 ring-rose-100">
-                <span className="text-xs font-semibold uppercase tracking-wide text-stone-400">Humor do dia</span>
+              <li className="flex flex-col gap-2 rounded-[6px] bg-sheet p-4 shadow-paper">
+                <span className="text-xs font-semibold tracking-[.14em] text-terracota uppercase">Humor do dia</span>
                 {selectedItems.moods.map((mood) => (
-                  <span key={mood.user_id} className="flex items-center gap-2 text-sm text-stone-600">
+                  <span key={mood.user_id} className="flex items-center gap-2 font-hand text-xl leading-tight text-muted">
                     <span className="text-xl">{mood.emoji}</span>
-                    <span className="font-semibold text-stone-900">
+                    <span className="font-semibold text-ink">
                       {mood.user_id === userId ? "Você" : partner?.display_name ?? "Seu par"}
                     </span>
                     {mood.note && <span className="min-w-0">· {mood.note}</span>}
@@ -267,22 +267,9 @@ function MomentSheet({
   return (
     <Sheet open onClose={onClose} title={form.id ? "Editar momento" : "Novo momento"}>
       <form onSubmit={save} className="flex flex-col gap-5">
-        <div className="flex flex-wrap gap-2">
-          {EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => setForm({ ...form, emoji })}
-              className={`flex size-11 items-center justify-center rounded-2xl text-xl transition ${
-                form.emoji === emoji ? "bg-rose-100 ring-2 ring-rose-400" : "bg-stone-50"
-              }`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
+        <EmojiPicker value={form.emoji} onChange={(emoji) => setForm({ ...form, emoji })} options={EMOJIS} />
         <Field label="O que vocês fizeram?">
-          <Input required placeholder="Ex: Primeiro show juntos" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Input required placeholder="ex: primeiro show juntos" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="Quando?">
           <Input type="date" required value={form.happened_on} onChange={(e) => setForm({ ...form, happened_on: e.target.value })} />
@@ -297,7 +284,7 @@ function MomentSheet({
               <Trash2 className="size-4" />
             </Button>
           )}
-          <Button type="submit" className="flex-1" loading={busy}>Salvar</Button>
+          <Button type="submit" className="flex-1" loading={busy}>Guardar no diário</Button>
         </div>
       </form>
     </Sheet>

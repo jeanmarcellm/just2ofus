@@ -17,6 +17,7 @@ import {
   Sheet,
   Spinner,
   Tabs,
+  WaxSeal,
 } from "@/components/ui";
 import { formatDay, parseDay, toDayString } from "@/lib/dates";
 import { friendlyError, supabase } from "@/lib/supabase";
@@ -87,7 +88,7 @@ export default function QuizPage() {
 
   return (
     <div>
-      <PageHeader title="Quiz do casal" subtitle="Quem conhece mais o outro?" />
+      <PageHeader title="Quiz do casal" subtitle="quem conhece mais o outro?" />
       <Tabs
         value={tab}
         onChange={setTab}
@@ -144,7 +145,7 @@ function Play({
         icon={<Send className="size-6" />}
         title="Falta seu par!"
         text="O quiz é para jogar a dois. Convide seu amor para começar."
-        action={<Link href="/perfil" className="font-semibold text-rose-600">Enviar convite</Link>}
+        action={<Link href="/perfil" className="font-hand text-[21px] text-batom">enviar convite →</Link>}
       />
     );
   }
@@ -184,12 +185,12 @@ function Play({
   if (round && finished) {
     const ratio = score / round.length;
     return (
-      <Card className="flex flex-col items-center gap-3 py-10 text-center">
-        <Trophy className="size-12 text-amber-400" />
-        <p className="text-4xl font-bold text-stone-900">
+      <Card tape="mustard" tilt={-0.5} className="flex flex-col items-center gap-3 py-10 text-center">
+        <Trophy className="size-12 text-mustard" />
+        <p className="font-serif text-6xl leading-none text-ink">
           {score}/{round.length}
         </p>
-        <p className="text-stone-500">
+        <p className="text-muted">
           {ratio === 1
             ? `Perfeito! Você conhece ${partner.display_name} de cor 💯`
             : ratio >= 0.7
@@ -207,18 +208,18 @@ function Play({
     const item = round[index];
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between text-sm text-stone-500">
+        <div className="flex items-center justify-between text-sm text-muted">
           <span>
             Pergunta {index + 1} de {round.length}
           </span>
-          <span className="font-semibold text-rose-600">{score} acertos</span>
+          <span className="font-hand text-xl text-batom">{score} acertos</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-rose-100">
-          <div className="h-full bg-rose-500 transition-all" style={{ width: `${((index + (picked !== null ? 1 : 0)) / round.length) * 100}%` }} />
+        <div className="h-1 overflow-hidden rounded-sm bg-[#f1e6db]">
+          <div className="h-full bg-rose-wave transition-all" style={{ width: `${((index + (picked !== null ? 1 : 0)) / round.length) * 100}%` }} />
         </div>
         <Card>
-          <p className="text-xs font-semibold tracking-wide text-rose-500 uppercase">{item.hint}</p>
-          <p className="mt-1 text-xl font-bold text-stone-900">{item.prompt}</p>
+          <p className="text-xs font-semibold tracking-[.14em] text-terracota uppercase">{item.hint}</p>
+          <p className="mt-1 font-serif text-[28px] leading-[1.1] text-ink italic">{item.prompt}</p>
         </Card>
         <div className="flex flex-col gap-2">
           {item.options.map((option, i) => {
@@ -229,14 +230,14 @@ function Play({
                 key={i}
                 onClick={() => pick(i)}
                 disabled={picked !== null}
-                className={`flex items-center justify-between rounded-2xl px-5 py-4 text-left font-medium ring-1 transition ${
+                className={`flex items-center justify-between rounded-[14px] px-5 py-4 text-left font-medium outline outline-[1.5px] outline-dashed outline-offset-[-5px] transition-[transform,box-shadow,background-color] duration-[120ms] ${
                   state === "correct"
-                    ? "bg-emerald-50 text-emerald-800 ring-emerald-300"
+                    ? "-rotate-1 bg-sage-soft text-sage-ink shadow-[0_3px_0_#b9cbb2] outline-sage"
                     : state === "wrong"
-                      ? "bg-red-50 text-red-700 ring-red-300"
+                      ? "rotate-1 bg-danger-bg text-danger shadow-[0_3px_0_#f0d3cf] outline-[#e19a9a]"
                       : state === "dim"
-                        ? "bg-white text-stone-400 ring-stone-100"
-                        : "bg-white text-stone-800 ring-rose-100 hover:ring-rose-300"
+                        ? "bg-sheet text-faint outline-dash"
+                        : "bg-sheet text-ink shadow-[0_3px_0_#e8d9cc] outline-rose-line active:translate-y-[3px] active:shadow-none"
                 }`}
               >
                 {option}
@@ -255,27 +256,31 @@ function Play({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-col items-center gap-3 py-8 text-center">
-        <Puzzle className="size-10 text-rose-400" />
-        <p className="text-lg font-bold text-stone-900">Quanto você conhece {partner.display_name}?</p>
-        <p className="text-sm text-stone-500">
+      <Card tape="rose" tilt={-0.5} className="flex flex-col items-center gap-3 py-8 text-center">
+        <WaxSeal size={52} className="animate-sway">
+          <Puzzle className="size-6" />
+        </WaxSeal>
+        <p className="font-serif text-[26px] leading-tight text-ink">
+          Quanto você conhece <em>{partner.display_name}?</em>
+        </p>
+        <p className="font-hand text-xl leading-tight text-muted">
           {partnerItems.length} respostas de {partner.display_name} + perguntas sobre os momentos de vocês.
         </p>
         <Button className="mt-2" onClick={start} disabled={available === 0}>
           Começar rodada
         </Button>
         {partnerItems.length === 0 && (
-          <p className="text-xs text-stone-400">
+          <p className="font-hand text-lg text-faint">
             {partner.display_name} ainda não respondeu nada em “Sobre mim”.
             {data.moments.length === 0 && " Registrem momentos no calendário para liberar perguntas."}
           </p>
         )}
       </Card>
-      <button onClick={onGoToMe} className="rounded-2xl bg-violet-50 p-4 text-left text-sm ring-1 ring-violet-100">
-        <span className="block font-semibold text-violet-900">
+      <button onClick={onGoToMe} className="rotate-[0.5deg] rounded-[6px] bg-sage-soft/70 p-4 text-left shadow-paper">
+        <span className="block font-serif text-xl text-sage-ink">
           Você respondeu {myAnsweredCount} de {data.questions.length} perguntas sobre você
         </span>
-        <span className="text-violet-700">Quanto mais responder, mais perguntas {partner.display_name} tem para jogar →</span>
+        <span className="font-hand text-xl leading-tight text-sage-ink">Quanto mais responder, mais perguntas {partner.display_name} tem para jogar →</span>
       </button>
     </div>
   );
@@ -320,13 +325,13 @@ function AboutMe({
     <div className="flex flex-col gap-4">
       <div>
         <div className="mb-2 flex justify-between text-sm">
-          <span className="text-stone-500">Responda sobre você mesmo(a)</span>
-          <span className="font-semibold text-rose-600">
+          <span className="font-hand text-xl text-muted">responda sobre você mesmo(a)</span>
+          <span className="font-hand text-xl text-batom">
             {done}/{total}
           </span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-rose-100">
-          <div className="h-full bg-rose-500 transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+        <div className="h-1 overflow-hidden rounded-sm bg-[#f1e6db]">
+          <div className="h-full bg-rose-wave transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
         </div>
       </div>
 
@@ -339,9 +344,9 @@ function AboutMe({
         return (
           <Card key={q.id} className={saving === q.id ? "opacity-60" : ""}>
             <div className="mb-3 flex items-start justify-between gap-3">
-              <p className="font-semibold text-stone-900">{q.prompt}</p>
+              <p className="font-serif text-xl leading-tight text-ink">{q.prompt}</p>
               {q.created_by === userId && (
-                <button onClick={() => removeQuestion(q)} className="text-stone-300 hover:text-red-500" aria-label="Excluir pergunta">
+                <button onClick={() => removeQuestion(q)} className="text-faint hover:text-danger" aria-label="Excluir pergunta">
                   <Trash2 className="size-4" />
                 </button>
               )}
@@ -352,8 +357,11 @@ function AboutMe({
                   key={i}
                   onClick={() => answer(q, i)}
                   disabled={saving === q.id}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                    mine === i ? "bg-rose-500 text-white" : "bg-rose-50 text-stone-700 hover:bg-rose-100"
+                  aria-pressed={mine === i}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-[background-color,color,rotate] duration-300 ease-bouncy ${
+                    mine === i
+                      ? "-rotate-2 bg-batom text-sheet shadow-[inset_0_-2px_0_rgba(0,0,0,.18)]"
+                      : "bg-sheet text-ink outline outline-[1.5px] outline-dashed outline-rose-line hover:bg-blush/40"
                   }`}
                 >
                   {option}
@@ -404,15 +412,15 @@ function NewQuestionSheet({ onClose, onCreated }: { onClose: () => void; onCreat
           <Input required value={prompt} onChange={(e) => setPrompt(e.target.value)} />
         </Field>
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-stone-700">Opções — marque a sua resposta</span>
+          <span className="font-hand text-[21px] leading-tight text-muted">Opções — marque a sua resposta</span>
           {options.map((option, i) => (
             <div key={i} className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setMyAnswer(i)}
                 aria-label={`Opção ${i + 1} é a minha resposta`}
-                className={`flex size-8 shrink-0 items-center justify-center rounded-full ring-1 ${
-                  myAnswer === i ? "bg-rose-500 text-white ring-rose-500" : "text-transparent ring-stone-300"
+                className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
+                  myAnswer === i ? "bg-batom text-sheet shadow-[inset_0_-2px_0_rgba(0,0,0,.18)]" : "bg-sheet text-transparent outline outline-[1.5px] outline-dashed outline-rose-line"
                 }`}
               >
                 <Check className="size-4" />
@@ -426,7 +434,7 @@ function NewQuestionSheet({ onClose, onCreated }: { onClose: () => void; onCreat
                 <button
                   type="button"
                   aria-label="Remover opção"
-                  className="text-stone-400"
+                  className="text-faint"
                   onClick={() => {
                     setOptions(options.filter((_, j) => j !== i));
                     setMyAnswer((a) => (a === i ? 0 : a > i ? a - 1 : a));
@@ -470,24 +478,26 @@ function Scoreboard({ rounds, partnerName }: { rounds: QuizRound[]; partnerName?
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3">
         {stats.map(({ person, rounds, pct }) => (
-          <Card key={person.id} className="flex flex-col items-center gap-2 text-center">
-            <Avatar name={person.display_name} />
-            <p className="font-semibold text-stone-900">{person.id === profile.id ? "Você" : person.display_name}</p>
-            <p className="text-3xl font-bold text-rose-500">{pct}%</p>
-            <p className="text-xs text-stone-500">
+          <Card key={person.id} tilt={person.id === profile.id ? -0.8 : 0.8} className="flex flex-col items-center gap-2 text-center">
+            <Avatar name={person.display_name} tone={person.id === profile.id ? "me" : "partner"} tilt={person.id === profile.id ? -6 : 6} />
+            <p className="font-hand text-xl text-ink">{person.id === profile.id ? "Você" : person.display_name}</p>
+            <p className="font-serif text-5xl leading-none text-batom">{pct}%</p>
+            <p className="text-xs text-muted">
               de acertos em {rounds} {rounds === 1 ? "rodada" : "rodadas"}
             </p>
           </Card>
         ))}
       </div>
       <Card>
-        <h3 className="mb-3 font-semibold text-stone-900">Últimas rodadas</h3>
-        <ul className="flex flex-col divide-y divide-rose-50">
+        <h3 className="mb-3 font-serif text-[22px] text-ink">
+          Últimas <em>rodadas</em>
+        </h3>
+        <ul className="flex flex-col divide-y divide-dash">
           {rounds.map((r) => (
             <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
-              <span className="text-stone-700">{nameOf(r.player_id)}</span>
-              <span className="text-stone-400">{formatDay(new Date(r.played_at), "d MMM")}</span>
-              <span className="font-semibold text-stone-900">
+              <span className="text-ink">{nameOf(r.player_id)}</span>
+              <span className="text-faint">{formatDay(new Date(r.played_at), "d MMM")}</span>
+              <span className="font-semibold text-ink">
                 {r.score}/{r.total}
               </span>
             </li>

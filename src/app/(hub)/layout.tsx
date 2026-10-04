@@ -8,12 +8,12 @@ import { getPendingInvite, useAuth } from "@/components/auth-provider";
 import { FullScreenSpinner } from "@/components/ui";
 
 const NAV = [
-  { href: "/inicio/", label: "Início", icon: Heart },
-  { href: "/calendario/", label: "Calendário", icon: CalendarDays },
-  { href: "/dates/", label: "Dates", icon: Wine },
-  { href: "/quiz/", label: "Quiz", icon: Puzzle },
-  { href: "/album/", label: "Álbum", icon: Camera },
-  { href: "/mais/", label: "Mais", icon: LayoutGrid },
+  { href: "/inicio/", label: "início", icon: Heart },
+  { href: "/calendario/", label: "agenda", icon: CalendarDays },
+  { href: "/dates/", label: "dates", icon: Wine },
+  { href: "/quiz/", label: "quiz", icon: Puzzle },
+  { href: "/album/", label: "álbum", icon: Camera },
+  { href: "/mais/", label: "mais", icon: LayoutGrid },
 ];
 
 // Pages opened from "Mais" keep that tab highlighted.
@@ -42,23 +42,28 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-lg">
-      <main className="px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      <main className="px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-[calc(120px+env(safe-area-inset-bottom))]">
         {children}
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-rose-100 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg">
-        <ul className="mx-auto flex max-w-lg">
+      <nav className="fixed inset-x-3 bottom-[calc(14px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[calc(32rem-1.5rem)] rounded-[22px] bg-sheet shadow-nav outline outline-[1.5px] outline-dashed outline-offset-[-6px] outline-[#ead9cc]">
+        <ul className="flex p-1.5">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <li key={href} className="flex-1">
                 <Link
                   href={href}
-                  className={`flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition sm:text-[11px] ${
-                    active ? "text-rose-500" : "text-stone-400"
-                  }`}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex flex-col items-center py-1.5 transition-colors ${active ? "text-batom" : "text-faint hover:text-muted"}`}
                 >
-                  <Icon className={`size-6 ${active ? "fill-rose-100" : ""}`} strokeWidth={active ? 2.25 : 1.75} />
-                  {label}
+                  <span className="relative flex h-7 w-10 items-center justify-center">
+                    {active && <span aria-hidden className="absolute inset-x-0 inset-y-1 -rotate-6 bg-[rgba(229,168,170,.55)]" />}
+                    <Icon
+                      className={`relative size-[22px] ${active ? "fill-batom/25" : ""} ${active && href === "/inicio/" ? "animate-beat fill-batom" : ""}`}
+                      strokeWidth={active ? 2 : 1.75}
+                    />
+                  </span>
+                  <span className={`font-hand text-[17px] leading-none ${active ? "font-bold" : ""}`}>{label}</span>
                 </Link>
               </li>
             );

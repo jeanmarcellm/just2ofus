@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AuthShell } from "@/components/auth-shell";
+import { AuthLink, AuthShell } from "@/components/auth-shell";
 import { afterAuthPath, useAuth } from "@/components/auth-provider";
 import { Button, ErrorText, Field, Input } from "@/components/ui";
 import { friendlyError, supabase } from "@/lib/supabase";
@@ -35,21 +34,26 @@ export default function SignIn() {
   }
 
   return (
-    <AuthShell title="Bem-vindo(a) de volta" subtitle="Entre para ver o cantinho de vocês.">
-      <form onSubmit={onSubmit} className="flex flex-col gap-5">
+    <AuthShell
+      title="Bem-vindo(a)"
+      emphasis="de volta"
+      subtitle="Entre para ver o cantinho de vocês."
+      footer={
+        <>
+          Ainda não tem conta? <AuthLink href="/cadastro">Criar conta</AuthLink>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="flex flex-col gap-[22px]">
         <Field label="Email">
-          <Input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input type="email" autoComplete="email" placeholder="voce@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
         <Field label="Senha">
           <Input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" loading={submitting}>Entrar</Button>
+        <Button type="submit" size="lg" className="mt-1.5" loading={submitting}>Entrar</Button>
       </form>
-      <p className="text-center text-sm text-stone-500">
-        Ainda não tem conta?{" "}
-        <Link href="/cadastro" className="font-semibold text-rose-600">Criar conta</Link>
-      </p>
     </AuthShell>
   );
 }

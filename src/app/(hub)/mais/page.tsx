@@ -12,36 +12,50 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui";
+import { Drop, Fancy, PageHeader, STICKER_TILTS } from "@/components/ui";
 
+// Each section is an index card with a sticker, alternating tilt and tape colors like a scrapbook.
 const SECTIONS = [
-  { href: "/pergunta", icon: MessageCircleHeart, title: "Pergunta do dia", text: "Respondam e descubram a resposta do outro", tone: "bg-rose-100 text-rose-600" },
-  { href: "/recados", icon: Mail, title: "Recados", text: "Bilhetinhos, inclusive programados", tone: "bg-pink-100 text-pink-600" },
-  { href: "/listas", icon: ListChecks, title: "Listas", text: "Filmes, restaurantes, viagens, compras…", tone: "bg-sky-100 text-sky-600" },
-  { href: "/metas", icon: Target, title: "Metas do casal", text: "Coisas para fazer juntos", tone: "bg-emerald-100 text-emerald-600" },
-  { href: "/datas", icon: PartyPopper, title: "Datas especiais", text: "Aniversários e datas que importam", tone: "bg-amber-100 text-amber-700" },
-  { href: "/historia", icon: Milestone, title: "Nossa história", text: "A linha do tempo de vocês", tone: "bg-violet-100 text-violet-600" },
-  { href: "/capsula", icon: Hourglass, title: "Cápsula do tempo", text: "Mensagens que só abrem no futuro", tone: "bg-indigo-100 text-indigo-600" },
-  { href: "/perfil", icon: UserRound, title: "Perfil", text: "Seus dados, convite e sair", tone: "bg-stone-100 text-stone-600" },
+  { href: "/pergunta", icon: MessageCircleHeart, title: "Pergunta do dia", text: "respondam e descubram a resposta do outro", tone: "bg-sticker text-batom" },
+  { href: "/recados", icon: Mail, title: "Recados", text: "bilhetinhos, inclusive programados", tone: "bg-envelope text-batom-dark" },
+  { href: "/listas", icon: ListChecks, title: "Listas", text: "filmes, restaurantes, viagens, compras…", tone: "bg-sage-soft text-sage-ink" },
+  { href: "/metas", icon: Target, title: "Metas do casal", text: "coisas para fazer juntos", tone: "bg-[#faf3e0] text-[#7a5a22]" },
+  { href: "/datas", icon: PartyPopper, title: "Datas especiais", text: "aniversários e datas que importam", tone: "bg-sticker text-batom" },
+  { href: "/historia", icon: Milestone, title: "Nossa história", text: "a linha do tempo de vocês", tone: "bg-sage-soft text-sage-ink" },
+  { href: "/capsula", icon: Hourglass, title: "Cápsula do tempo", text: "mensagens que só abrem no futuro", tone: "bg-[#faf3e0] text-[#7a5a22]" },
+  { href: "/perfil", icon: UserRound, title: "Perfil", text: "seus dados, convite e sair", tone: "bg-kraft text-muted" },
 ];
+
+const TILTS = [-0.6, 0.5, -0.3, 0.6];
 
 export default function MorePage() {
   return (
     <div>
-      <PageHeader title="Mais" subtitle="Tudo o que vocês podem fazer juntos" />
-      <ul className="flex flex-col gap-3">
-        {SECTIONS.map(({ href, icon: Icon, title, text, tone }) => (
+      <PageHeader title="Mais" subtitle="tudo o que vocês podem fazer juntos" />
+      <ul className="flex flex-col gap-4">
+        {SECTIONS.map(({ href, icon: Icon, title, text, tone }, i) => (
           <li key={href}>
-            <Link href={href} className="flex items-center gap-4 rounded-3xl bg-white p-4 ring-1 ring-rose-100">
-              <span className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}>
-                <Icon className="size-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-stone-900">{title}</span>
-                <span className="block text-sm text-stone-500">{text}</span>
-              </span>
-              <ChevronRight className="size-5 shrink-0 text-stone-300" />
-            </Link>
+            <Drop index={i}>
+              <Link
+                href={href}
+                className="flex items-center gap-4 rounded-[6px] bg-sheet p-4 shadow-paper transition-[rotate] duration-300 [rotate:var(--tilt)] hover:[rotate:0deg]"
+                style={{ "--tilt": `${TILTS[i % TILTS.length]}deg` } as React.CSSProperties}
+              >
+                <span
+                  className={`flex size-11 shrink-0 items-center justify-center rounded-full shadow-sticker ${tone}`}
+                  style={{ rotate: `${STICKER_TILTS[i % STICKER_TILTS.length]}deg` }}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-serif text-[22px] leading-tight text-ink">
+                    <Fancy text={title} />
+                  </span>
+                  <span className="block font-hand text-xl leading-tight text-muted">{text}</span>
+                </span>
+                <ChevronRight className="size-5 shrink-0 text-terracota" />
+              </Link>
+            </Drop>
           </li>
         ))}
       </ul>

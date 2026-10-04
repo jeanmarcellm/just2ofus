@@ -37,15 +37,15 @@ export default function Onboarding() {
 
   if (!couple) {
     return (
-      <AuthShell title={`Oi, ${profile.display_name}! 👋`} subtitle="Vamos montar o cantinho de vocês.">
-        <form onSubmit={createCouple} className="flex flex-col gap-5">
+      <AuthShell title="Oi," emphasis={`${profile.display_name}! 👋`} subtitle="Vamos montar o cantinho de vocês.">
+        <form onSubmit={createCouple} className="flex flex-col gap-[22px]">
           <Field label="Desde quando vocês estão juntos?" hint="Usamos essa data no contador do casal.">
             <Input type="date" required max={toDayString(new Date())} value={since} onChange={(e) => setSince(e.target.value)} />
           </Field>
           <ErrorText>{error}</ErrorText>
-          <Button type="submit" loading={saving}>Continuar</Button>
+          <Button type="submit" size="lg" loading={saving}>Continuar</Button>
         </form>
-        <p className="text-center text-sm text-stone-500">
+        <p className="text-center font-hand text-xl leading-tight text-muted">
           Recebeu um convite? Abra o link que seu amor enviou.
         </p>
       </AuthShell>
@@ -53,7 +53,7 @@ export default function Onboarding() {
   }
 
   return (
-    <AuthShell title="Convide seu amor 💌" subtitle="Envie este link. Ao abrir, a pessoa cria a conta e vocês ficam conectados.">
+    <AuthShell title="Convide seu" emphasis="amor 💌" subtitle="Envie este link. Ao abrir, a pessoa cria a conta e vocês ficam conectados.">
       <InviteCard inviterName={profile.display_name} />
       <Button variant="ghost" onClick={() => router.replace("/inicio")}>
         Fazer isso depois

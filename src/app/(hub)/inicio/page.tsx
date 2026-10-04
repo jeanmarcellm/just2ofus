@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarHeart, Camera, ChevronRight, MapPin, Send, Wine } from "lucide-react";
+import { ChevronRight, Send } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCouple } from "@/components/auth-provider";
@@ -8,30 +8,18 @@ import {
   DailyQuestionCard,
   LatestNoteCard,
   MoodCard,
+  NextDateTicket,
+  NotebookMoments,
   OnThisDayCard,
+  TogetherCounter,
   UpcomingDatesCard,
 } from "@/components/home-cards";
-import { Avatar, Card } from "@/components/ui";
-import { formatDateTime, formatDay, nextAnniversary, togetherDuration } from "@/lib/dates";
+import { CouplePolaroids, Drop, Fancy, SectionTitle } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 import type { DatePlan, Moment } from "@/lib/types";
 
-function useNow() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
-
-const pad = (n: number) => String(n).padStart(2, "0");
-
 export default function Home() {
   const { profile, partner, couple } = useCouple();
-  const now = useNow();
-  const t = togetherDuration(couple.together_since, now);
-  const anniversary = nextAnniversary(couple.together_since, now);
 
   const [nextDate, setNextDate] = useState<DatePlan | null>(null);
   const [moments, setMoments] = useState<Moment[]>([]);
@@ -63,124 +51,90 @@ export default function Home() {
     });
   }, []);
 
+  let i = 0;
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-stone-500">Oi, {profile.display_name}</p>
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
-            {partner ? `Você & ${partner.display_name}` : "Seu cantinho"}
+    <div className="flex flex-col gap-[26px]">
+      <header className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-hand text-[22px] leading-tight text-muted">oi, {profile.display_name}</p>
+          <h1 className="-mt-0.5 truncate font-serif text-4xl leading-none tracking-[-0.01em] text-ink">
+            {partner ? (
+              <>
+                Você <em className="text-batom">&amp;</em> {partner.display_name}
+              </>
+            ) : (
+              <Fancy text="Seu cantinho" />
+            )}
           </h1>
         </div>
-        <Link href="/perfil" aria-label="Perfil" className="flex -space-x-3">
-          <Avatar name={profile.display_name} />
-          {partner && <Avatar name={partner.display_name} className="bg-violet-100 text-violet-600" />}
+        <Link href="/perfil" aria-label="Perfil">
+          <CouplePolaroids me={profile.display_name} partner={partner?.display_name} />
         </Link>
       </header>
 
       {!partner && (
-        <Link href="/perfil" className="flex items-center gap-3 rounded-3xl bg-violet-50 p-4 ring-1 ring-violet-100">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-violet-500 text-white">
-            <Send className="size-5" />
-          </span>
-          <span className="flex-1 text-sm">
-            <span className="block font-semibold text-violet-900">Convide seu amor</span>
-            <span className="text-violet-700">O app fica completo com vocês dois.</span>
-          </span>
-          <ChevronRight className="size-5 text-violet-400" />
-        </Link>
+        <Drop index={i++}>
+          <Link href="/perfil" className="flex rotate-[-0.6deg] items-center gap-3 rounded-[6px] bg-kraft p-4 shadow-paper">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-batom text-sheet shadow-[inset_0_-3px_0_rgba(0,0,0,.18)]">
+              <Send className="size-[18px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-serif text-[22px] leading-tight text-ink">
+                Convide seu <em>amor</em>
+              </span>
+              <span className="font-hand text-xl leading-tight text-ink-soft">o diário fica completo com vocês dois</span>
+            </span>
+            <ChevronRight className="size-5 text-terracota" />
+          </Link>
+        </Drop>
       )}
 
-      <section className="rounded-[2rem] bg-gradient-to-br from-rose-500 via-rose-500 to-fuchsia-500 p-6 text-white shadow-lg shadow-rose-500/30">
-        <p className="text-sm font-medium text-rose-100">Juntos há</p>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          {[
-            [t.years, t.years === 1 ? "ano" : "anos"],
-            [t.months, t.months === 1 ? "mês" : "meses"],
-            [t.days, t.days === 1 ? "dia" : "dias"],
-          ].map(([value, label]) => (
-            <div key={label as string} className="rounded-2xl bg-white/15 py-3">
-              <p className="text-3xl font-bold tabular-nums">{value}</p>
-              <p className="text-xs text-rose-100">{label}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 text-center font-mono text-2xl font-semibold tabular-nums tracking-wider">
-          {pad(t.hours)}:{pad(t.minutes)}:{pad(t.seconds)}
-        </p>
-        <div className="mt-5 flex items-center justify-between border-t border-white/20 pt-4 text-sm">
-          <span className="text-rose-100">{t.totalDays.toLocaleString("pt-BR")} dias no total</span>
-          <span className="font-semibold">
-            {anniversary.daysLeft === 0
-              ? `Hoje: ${anniversary.years} ${anniversary.years === 1 ? "ano" : "anos"}! 🎉`
-              : `${anniversary.years} ${anniversary.years === 1 ? "ano" : "anos"} em ${anniversary.daysLeft} dias`}
-          </span>
-        </div>
-      </section>
+      <Drop index={i++}>
+        <TogetherCounter since={couple.together_since} />
+      </Drop>
 
-      <LatestNoteCard />
-      <MoodCard />
-      <DailyQuestionCard />
+      <LatestNoteCard dropIndex={i++} />
 
-      <div className="grid grid-cols-3 gap-3">
+      <Drop index={i++}>
+        <MoodCard />
+      </Drop>
+
+      <DailyQuestionCard dropIndex={i++} />
+
+      <Drop index={i++} className="flex justify-between">
         {[
-          { href: "/calendario", icon: CalendarHeart, value: stats.moments, label: "momentos" },
-          { href: "/dates", icon: Wine, value: stats.dates, label: "dates" },
-          { href: "/album", icon: Camera, value: stats.photos, label: "fotos" },
-        ].map(({ href, icon: Icon, value, label }) => (
-          <Link key={href} href={href} className="rounded-2xl bg-white p-4 ring-1 ring-rose-100">
-            <Icon className="size-5 text-rose-400" />
-            <p className="mt-2 text-xl font-bold text-stone-900">{value}</p>
-            <p className="text-xs text-stone-500">{label}</p>
+          { href: "/calendario", value: stats.moments, label: "momentos", tilt: -4, line: "#e3b5ba", bg: "#fbefee" },
+          { href: "/dates", value: stats.dates, label: "dates", tilt: 2, line: "#b9cbb2", bg: "#f1f4ec" },
+          { href: "/album", value: stats.photos, label: "fotos", tilt: -1.5, line: "#e2cf9b", bg: "#faf3e0" },
+        ].map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="drop-shadow-[0_6px_8px_rgba(80,50,40,.22)] transition-[rotate,scale] duration-300 [rotate:var(--tilt)] hover:scale-105 hover:[rotate:0deg]"
+            style={{ "--tilt": `${s.tilt}deg` } as React.CSSProperties}
+          >
+            <span className="j2-stamp block h-28 w-[104px] bg-sheet p-1.5 max-[360px]:w-24">
+              <span className="flex h-full flex-col items-center justify-center border" style={{ borderColor: s.line, background: s.bg }}>
+                <span className="font-serif text-[38px] leading-none text-ink">{s.value}</span>
+                <span className="font-hand text-xl leading-tight text-ink-soft">{s.label}</span>
+              </span>
+            </span>
           </Link>
         ))}
-      </div>
+      </Drop>
 
-      <UpcomingDatesCard />
+      <UpcomingDatesCard dropIndex={i++} />
 
-      <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-stone-900">Próximo date</h2>
-          <Link href="/dates" className="text-sm font-semibold text-rose-600">Ver todos</Link>
-        </div>
-        {nextDate ? (
-          <div>
-            <p className="text-lg font-semibold text-stone-900">{nextDate.title}</p>
-            <p className="text-sm capitalize text-stone-500">{formatDateTime(nextDate.scheduled_at)}</p>
-            {nextDate.location && (
-              <p className="mt-1 flex items-center gap-1 text-sm text-stone-500">
-                <MapPin className="size-4" /> {nextDate.location}
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-stone-500">Nenhum date marcado. Que tal planejar um?</p>
-        )}
-      </Card>
+      <Drop index={i++}>
+        <SectionTitle title="Próximo date" href="/dates" />
+        <NextDateTicket plan={nextDate} />
+      </Drop>
 
-      <OnThisDayCard />
+      <OnThisDayCard dropIndex={i++} />
 
-      <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-stone-900">Últimos momentos</h2>
-          <Link href="/calendario" className="text-sm font-semibold text-rose-600">Calendário</Link>
-        </div>
-        {moments.length ? (
-          <ul className="flex flex-col gap-3">
-            {moments.map((m) => (
-              <li key={m.id} className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-2xl bg-rose-50 text-xl">{m.emoji}</span>
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-stone-900">{m.title}</p>
-                  <p className="text-xs text-stone-500">{formatDay(m.happened_on)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-stone-500">Registrem as coisas que fizeram juntos no calendário.</p>
-        )}
-      </Card>
+      <Drop index={i++}>
+        <NotebookMoments moments={moments} />
+      </Drop>
     </div>
   );
 }

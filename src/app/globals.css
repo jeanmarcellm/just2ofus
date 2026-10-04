@@ -1,8 +1,90 @@
 @import "tailwindcss";
 
+/* "Diário de nós dois": cream paper, washi tape, polaroids and handwriting. */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-hanken);
+  --font-serif: var(--font-instrument);
+  --font-hand: var(--font-caveat);
   --font-mono: var(--font-geist-mono);
+
+  --color-paper: #f6f0e7;
+  --color-sheet: #fffdf9;
+  --color-kraft: #f4ebe0;
+  --color-ink: #3a2a26;
+  --color-ink-soft: #6b4a44;
+  --color-muted: #7a6660;
+  --color-faint: #9a867c;
+  --color-line: #e2d3c6;
+  --color-rule: #ebe1d6;
+  --color-dash: #ecdfd2;
+  --color-batom: #b4475a;
+  --color-batom-dark: #8d3344;
+  --color-batom-hover: #a63f52;
+  --color-blush: #f1d9d6;
+  --color-sticker: #f6dcdc;
+  --color-rose-line: #d9a9ae;
+  --color-rose-wave: #e3b5ba;
+  --color-terracota: #a0675f;
+  --color-sage: #8aa386;
+  --color-sage-soft: #dfe6d8;
+  --color-sage-ink: #4f6a4e;
+  --color-mustard: #c9a35c;
+  --color-danger: #a8323a;
+  --color-danger-bg: #fbe9e6;
+  --color-envelope: #efdcd3;
+  --color-envelope-flap: #e6c9be;
+
+  --shadow-paper: 0 14px 30px -16px rgba(80, 50, 40, 0.35);
+  --shadow-polaroid: 0 10px 18px -8px rgba(80, 50, 40, 0.4);
+  --shadow-polaroid-sm: 0 6px 12px -4px rgba(80, 50, 40, 0.35);
+  --shadow-nav: 0 14px 30px -10px rgba(80, 50, 40, 0.4);
+  --shadow-pad: 0 2px 0 #eadccf, 0 4px 0 #f6eee4, 0 6px 0 #e6d6c8, 0 22px 40px -18px rgba(80, 50, 40, 0.4);
+  --shadow-sticker: 0 0 0 3px #fffdf9, 0 4px 8px -3px rgba(80, 50, 40, 0.3);
+
+  --animate-drop: j2drop 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-beat: j2beat 2.4s ease-in-out infinite;
+  --animate-flip: j2flip 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
+  --animate-sway: j2sway 3s ease-in-out infinite;
+  --animate-float: j2float 3.2s ease-in-out infinite;
+  --animate-spin-soft: j2spin 0.8s linear infinite;
+
+  --ease-bouncy: cubic-bezier(0.3, 1.7, 0.5, 1);
+  --ease-spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes j2drop {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes j2beat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.18); }
+  24% { transform: scale(0.96); }
+  36% { transform: scale(1.1); }
+  50% { transform: scale(1); }
+}
+@keyframes j2flip {
+  from { opacity: 0; transform: translateY(-60%) rotateX(70deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes j2sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+@keyframes j2float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes j2spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes j2sheet {
+  from { transform: translateY(105%); }
+  to { transform: none; }
+}
+@keyframes j2fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 :root {
@@ -14,7 +96,51 @@ html {
 }
 
 body {
-  background: #fff7f8;
-  color: #1c1917;
+  /* dotted paper */
+  background: #f6f0e7 radial-gradient(#e2d5c5 1px, transparent 1.3px) 0 0 / 18px 18px;
+  color: #3a2a26;
   overscroll-behavior-y: none;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Stamp edge and ticket notches: box-shadow is clipped by masks, so wrappers use drop-shadow. */
+.j2-stamp {
+  -webkit-mask: radial-gradient(circle, transparent 2.6px, #000 3px) -4px -4px / 8px 8px, linear-gradient(#000 0 0) content-box;
+  mask: radial-gradient(circle, transparent 2.6px, #000 3px) -4px -4px / 8px 8px, linear-gradient(#000 0 0) content-box;
+}
+.j2-ticket {
+  -webkit-mask:
+    radial-gradient(circle 11px at calc(100% - 96px) 0, transparent 98%, #000),
+    radial-gradient(circle 11px at calc(100% - 96px) 100%, transparent 98%, #000);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle 11px at calc(100% - 96px) 0, transparent 98%, #000),
+    radial-gradient(circle 11px at calc(100% - 96px) 100%, transparent 98%, #000);
+  mask-composite: intersect;
+}
+.j2-lined {
+  background-color: #fffdf9;
+  background-image: repeating-linear-gradient(transparent 0 31px, #ebe1d6 31px 32px);
+  background-attachment: local;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* entrances become a plain fade; decorative loops stop; the loading spinner keeps turning */
+  .animate-drop {
+    animation-name: j2fade !important;
+  }
+  .animate-beat,
+  .animate-sway,
+  .animate-float,
+  .animate-flip {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
